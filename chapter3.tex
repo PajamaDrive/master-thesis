@@ -1,7 +1,38 @@
 \include{begin}
 
 \chapter{問題設定}
-\section{本文書について}
-本文書は，\texttt{thesis-format}のテンプレート用文書である．
+\section{複数論点交渉問題}
+本研究では，交渉問題の中でも論点が複数存在する複数論点交渉問題を扱う．エージェント$A_1$と$A_2$が交渉を行う場合を考える．
+エージェント$a \in \{ A_1， A_2 \}$の目的関数$f$は，$a$の効用関数$U_{a}$とすべての合意案候補集合$S$を用いると\equref{eq:objectFunc}と表すことができる．
+
+\begin{equation}
+  f = \argmax_{s \in S} U_{a}(s)
+  \label{eq:objectFunc}
+\end{equation}
+複数論点交渉問題の場合，目的関数$g$は\equref{eq:socialSurplus}で表され，この目的関数の値は社会的余剰と呼ばれる．
+\begin{equation}
+  g = \argmax_{s \in S} \sum_{a \in \{ A_1， A_2 \}} U_{a}(s)
+  \label{eq:socialSurplus}
+\end{equation}
+
+一つの交渉問題はドメインと呼ばれ，論点数$N$のドメインは固有の論点集合$I = \{ i_1， i_2， \ldots， i_N \}$を持つ．
+また，論点$i_k \in I$は選択肢集合$V_k = \{ v_{k1}， v_{k2}， \ldots ，v_{kn_k} \}$を持つ．ただし，論点$i_k$の選択肢数を$n_k$と定義する．
+
+各論点$i_k \in I$についてそれぞれ選択肢$v_k \in V_k$を一つずつ選んだものを合意案候補(Bid)と呼び，
+$s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべての合意案候補集合$S$は\equref{eq:Bid}と表すことができる．
+
+\begin{equation}
+  S = \{ s = (v_1， v_2， \ldots， v_N) |  v_k \in V_k ， 1 \leqq k \leqq N \}
+  \label{eq:Bid}
+\end{equation}
+
+エージェントは各論点$i_k$について重み$w_k$$(\sum_{k = 1}^N w_k = 1)$および選択肢の評価値$eval(v_k \in V_k)$を持つ．
+ただし，$eval(v_k \in V_k)$は最大値が1となるように正規化されているものとする．このとき，エージェントの効用関数$U$は\equref{eq:Utility}となる．
+\begin{equation}
+  U(s) = \sum_{k = 1}^N w_k \cdot eval(v_k)
+  \label{eq:Utility}
+\end{equation}
+また，各エージェントに対し留保価格(reservation value)が設定される場合がある．
+留保価格は合意形成に失敗した際にエージェントが獲得できる効用値である．
 
 \include{end}
