@@ -2,9 +2,8 @@
 
 \chapter{問題設定}
 \section{複数論点交渉問題}
-本研究では，交渉問題の中でも論点が複数存在する複数論点交渉問題を扱う．エージェント$A_1$と$A_2$が交渉を行う場合を考える．
+本研究では，交渉問題の中でも論点が複数存在する複数論点交渉問題(Multi issue bargaining task)を扱う．まず，エージェント$A_1$と$A_2$が交渉を行う場合を考える．
 エージェント$a \in \{ A_1， A_2 \}$の目的関数$f$は，$a$の効用関数$U_{a}$とすべての合意案候補集合$S$を用いると\equref{eq:objectFunc}と表すことができる．
-
 \begin{equation}
   f = \argmax_{s \in S} U_{a}(s)
   \label{eq:objectFunc}
@@ -15,24 +14,74 @@
   \label{eq:socialSurplus}
 \end{equation}
 
-一つの交渉問題はドメインと呼ばれ，論点数$N$のドメインは固有の論点集合$I = \{ i_1， i_2， \ldots， i_N \}$を持つ．
+一つの交渉問題はドメインと呼ばれ，論点数$N$のドメインはそれぞれ固有の論点集合$I = \{ i_1， i_2， \ldots， i_N \}$を持つ．
 また，論点$i_k \in I$は選択肢集合$V_k = \{ v_{k1}， v_{k2}， \ldots ，v_{kn_k} \}$を持つ．ただし，論点$i_k$の選択肢数を$n_k$と定義する．
 
 各論点$i_k \in I$についてそれぞれ選択肢$v_k \in V_k$を一つずつ選んだものを合意案候補(Bid)と呼び，
 $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべての合意案候補集合$S$は\equref{eq:Bid}と表すことができる．
-
 \begin{equation}
   S = \{ s = (v_1， v_2， \ldots， v_N) |  v_k \in V_k ， 1 \leqq k \leqq N \}
   \label{eq:Bid}
 \end{equation}
 
-エージェントは各論点$i_k$について重み$w_k$$(\sum_{k = 1}^N w_k = 1)$および選択肢の評価値$eval(v_k \in V_k)$を持つ．
+各エージェントは各論点$i_k$について重み$w_k$$(\sum_{k = 1}^N w_k = 1)$および選択肢の評価値$eval(v_k \in V_k)$を持つ．
 ただし，$eval(v_k \in V_k)$は最大値が1となるように正規化されているものとする．このとき，エージェントの効用関数$U$は\equref{eq:Utility}となる．
 \begin{equation}
   U(s) = \sum_{k = 1}^N w_k \cdot eval(v_k)
   \label{eq:Utility}
 \end{equation}
-また，各エージェントに対し留保価格(reservation value)が設定される場合がある．
-留保価格は合意形成に失敗した際にエージェントが獲得できる効用値である．
+
+論点$i_k$の重み$w_k$が大きいほど$i_k$はエージェントにとって重要な論点である．
+論点$i_k$がそのエージェントにとって$j (1 \leqq j \leqq N)$番目に重要であるという情報$J = \{ j_1, j_2, \ldots, j_N \}$をエージェントの選好(Preference)と呼ぶ．
+ただし，各エージェントが持つ各論点の重みと選択肢の評価値は他のエージェントには公開されずに交渉が行われる．
+そのため，各エージェントは相手の効用関数を推定して提案を行う．
+また，エージェントに対してBATNA(Best Alternative To Nagotiated Agrrement)として留保価格(reservation value)と呼ばれる値が設定される場合がある．
+留保価格は合意形成に失敗した際にエージェントが最低限獲得できる効用値である．
+
+\section{統合的交渉}
+複数論点交渉問題の場合，各エージェントの選好$J_a$が同じ場合と異なる場合がある．
+選好が同じ場合は配分的交渉(Distributive bargaining)と呼ばれ，一方の利益は一方の損失につながるため，資源の奪い合いとなる．
+対して，選好が異なる場合は統合的交渉(Integrative bargaining)と呼ばれ，双方が重要でない論点で互いに譲歩することで双方の利益となる場合があり，
+資源を育ててから切り分けることができる．
+
+\section{本稿における問題設定}
+本稿の目的は交渉中に相手のパーソナリティの測定を試みることであるが，相手の選好が正しく推定できていないとパーソナリティの測定は困難である．
+したがって，本稿で用いるエージェントは{\bf 相手の選好が正しく推定できている}，すなわち{\bf 相手の選好は既知である}という前提の下，交渉を行う．
+
+本稿では3種類のドメインを用いて実験を行う．
+各ドメインはIAGOの最新版にデフォルトで存在するドメインを一部修正したもので，いずれも統合的交渉となっている．
+各ドメインの詳細を\tabref{tab:common-domain}，\tabref{tab:domain}に示す．なお，表中のAはエージェント，Hは人間を指している．
+また，各ドメインの合意案候補によってエージェントと人間が得られる効用を2次元座標にプロットしたものを\figref{fig:domain}に示す．
+なお，赤で示した点はパレート最適な合意案である．
+
+\begin{table}[htb]
+  \centering
+  \caption{本稿で用いるドメインで共通の属性}
+  \begin{tabular}{ccc} \toprule
+      論点数 & 選択肢数 & 留保価格 \\ \midrule
+      4 & 6 & 0.24 \\ \bottomrule
+  \end{tabular}
+  \label{tab:common-domain}
+\end{table}
+
+\begin{table}[htb]
+  \centering
+  \caption{本稿で用いるドメイン}
+  \begin{tabular}{ccccccccc} \toprule
+      & \multicolumn{2}{c}{論点1の重み} & \multicolumn{2}{c}{論点2の重み} & \multicolumn{2}{c}{論点3の重み} & \multicolumn{2}{c}{論点4の重み} \\
+      ドメイン名  & A & H & A & H & A & H & A & H \\ \midrule
+      FavorGameSpec1 & 0.3 & 0.2 & 0.2 & 0.3 & 0.1 & 0.4 & 0.4 & 0.1 \\
+      FavorGameSpec2 & 0.1 & 0.4 & 0.2 & 0.3 & 0.3 & 0.2 & 0.4 & 0.1 \\
+      FavorGameSpec3 & 0.4 & 0.1 & 0.2 & 0.3 & 0.3 & 0.2 & 0.1 & 0.4 \\ \bottomrule
+  \end{tabular}
+  \label{tab:domain}
+\end{table}
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=12truecm]{../image/domain.eps}
+  \caption{本稿で用いるドメインにおける合意案候補とパレート最適解}
+  \label{fig:domain}
+\end{figure}
 
 \include{end}
