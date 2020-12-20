@@ -32,29 +32,28 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
 \end{equation}
 
 論点$i_k$の重み$w_k$が大きいほど$i_k$はエージェントにとって重要な論点である．
-論点$i_k$がそのエージェントにとって$j (1 \leqq j \leqq N)$番目に重要であるという情報$J = \{ j_1, j_2, \ldots, j_N \}$をエージェントの選好(Preference)と呼ぶ．
+論点$i_k$がそのエージェントにとって$j (1 \leqq j \leqq N)$番目に重要であるという情報$J = \left( \begin{array}{rrrr} j_1 & j_2 & \ldots & j_N \end{array}\right)$をエージェントの選好(Preference)と呼ぶ．
 ただし，各エージェントが持つ各論点の重みと選択肢の評価値は他のエージェントには公開されずに交渉が行われる．
 そのため，各エージェントは相手の効用関数を推定して提案を行う．
 また，エージェントに対してBATNA(Best Alternative To Nagotiated Agrrement)として留保価格(reservation value)と呼ばれる値が設定される場合がある．
 留保価格は合意形成に失敗した際にエージェントが最低限獲得できる効用値である．
 
 \section{統合的交渉}
-複数論点交渉問題の場合，各エージェントの選好$J_a$が同じ場合と異なる場合がある．
+複数論点交渉問題の場合，各エージェントの選好$J_A$が同じ場合と異なる場合がある．
 選好が同じ場合は配分的交渉(Distributive bargaining)と呼ばれ，一方の利益は一方の損失につながるため，資源の奪い合いとなる．
 対して，選好が異なる場合は統合的交渉(Integrative bargaining)と呼ばれ，双方が重要でない論点で互いに譲歩することで双方の利益となる場合があり，
-資源を育ててから切り分けることができる．
+資源を育ててから配分することができる．
 
 \section{本稿における問題設定}
 本稿の目的は交渉中に相手のパーソナリティの測定を試みることであるが，相手の選好が正しく推定できていないとパーソナリティの測定は困難である．
 したがって，本稿で用いるエージェントは{\bf 相手の選好が正しく推定できている}，すなわち{\bf 相手の選好は既知である}という前提の下，交渉を行う．
+以降，数式や変数の添字においてAはエージェント，Hは人間を表す．
 
 本稿では3種類のドメインを用いて実験を行う．
 各ドメインはIAGOの最新版にデフォルトで存在するドメインを一部修正したもので，いずれも統合的交渉となっている．
 各ドメインの詳細を\tabref{tab:common-domain}，\tabref{tab:domain}に示す．なお，表中のAはエージェント，Hは人間を指している．
-また，各ドメインの合意案候補によってエージェントと人間が得られる効用を2次元座標にプロットしたものを\figref{fig:domain}に示す．
-なお，赤で示した点はパレート最適な合意案である．
 
-\begin{table}[htb]
+\begin{table}[b]
   \centering
   \caption{本稿で用いるドメインで共通の属性}
   \begin{tabular}{ccc} \toprule
@@ -64,7 +63,7 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
   \label{tab:common-domain}
 \end{table}
 
-\begin{table}[htb]
+\begin{table}[tb]
   \centering
   \caption{本稿で用いるドメイン}
   \begin{tabular}{ccccccccc} \toprule
@@ -76,6 +75,43 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
   \end{tabular}
   \label{tab:domain}
 \end{table}
+
+本稿で用いるドメインでは論点としてそれぞれ項目が設定されており，選択肢はその項目をいくつ配分するかによって決まる．
+選択肢数は6なので選択肢の値は0から5のいずれかとなり，各論点におけるエージェントと人間の選択肢の値を足した値は常に5以下となり，これに未配分の項目数を足すと常に5となる．
+例としてFavorGameSpec1において\tabref{tab:bid_ex}のような提案が行われたとする．
+このドメインでは論点1はアンティークランプ，論点2は絵画，論点3はレコード，論点4は鳩時計という項目になっている．
+\tabref{tab:bid_ex}のような提案であればアンティークランプをエージェントが2つ，人間が1つ獲得し，絵画をエージェントが4つ獲得し人間が1つも獲得しない．
+なお，選択肢の評価値は選択肢の値に0.2を乗じた値とする．
+上述の例では論点1に対するエージェントの選択肢の評価値は0.4，人間の選択肢の評価値は0.2となる．
+
+また，本稿で用いるドメインでは$bid_t$は$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
+1列目にはエージェントの選択肢$v_{kA}$，2列目には未配分の項目数，3列目には人間の選択肢$v_{kH}$が代入されている．
+\tabref{tab:bid_ex}では$bid_t$は\equref{eq:bid_ex}となる．
+\begin{equation}
+    bid_t = \left(
+    \begin{array}{rrr}
+        2 & 2 & 1 \\
+        4 & 1 & 0 \\
+        3 & 0 & 2 \\
+        0 & 5 & 0
+    \end{array}
+    \right)
+    \label{eq:bid_ex}
+\end{equation}
+
+\begin{table}[tb]
+  \centering
+  \caption{FavorGameSpec1における$bid_t$の例}
+  \begin{tabular}{cccccccc} \toprule
+      \multicolumn{2}{c}{論点1の選択肢} & \multicolumn{2}{c}{論点2の選択肢} & \multicolumn{2}{c}{論点3の選択肢} & \multicolumn{2}{c}{論点4の選択肢} \\
+      A & H & A & H & A & H & A & H \\ \midrule
+      2 & 1 & 4 & 0 & 3 & 2 & 0 & 0 \\ \bottomrule
+  \end{tabular}
+  \label{tab:bid_ex}
+\end{table}
+
+また，各ドメインの合意案候補によってエージェントと人間が得られる効用を2次元座標にプロットしたものを\figref{fig:domain}に示す．
+なお，実線上にある点はパレート最適な合意案である．
 
 \begin{figure}[htb]
   \centering

@@ -1,16 +1,118 @@
 \include{begin}
 
 \chapter{プロファイリングを用いた交渉戦略}
-\section{戦略の概要}
 相手の性格や特性を推定し，特性に応じて自分の行動を決定することは交渉を含めた日常生活でも頻繁に行われる．
-前述のようにTKIは対立関係に置かれた際の人間の対応方法を分類したものであり，ビッグファイブは5つの因子の値によって人間の特性を表したものである．
+\chapref{chap:related}で述べたようにTKIは対立関係に置かれた際の人間の対応方法を分類したものであり，ビッグファイブは5つの因子の値によって人間の特性を表したものである．
+本研究では，TKIとビッグファイブを用いて相手の特性を推定し，相手の特性によって譲歩速度を変更するエージェントを提案する．
 
-本研究では，TKIとビッグファイブを用いて相手の特性を推定し，相手の特性によって戦略を変更するエージェントを提案する．
-エージェントは相手の提案や送信された感情・メッセージなどからTKIとビッグファイブを用いて相手の特性を推定する．TKIは相手の提案から推定を行い，ビッグファイブは提案と相手の行動を総合的に判断して各因子の推定を行う．
+\section{戦略の概要}
+\begin{figure}[tb]
+    \centering
+    \includegraphics[width=14truecm]{../image/trait_estimate.eps}
+    \caption{プロファイリングを用いた戦略の概要}
+    \label{fig:trait_estimate}
+\end{figure}
+エージェントは相手の提案や送信された感情，メッセージなどからTKIのモードとビッグファイブの各因子の値を推定する．
+また，過去の提案や行動より現在の提案や行動に大きい重みをかけて平均などを計算することによってより柔軟な対応を実現する．
+推定した相手の特性によってエージェントの譲歩速度を変更する．
+これにより，相手の特性に合わせた提案を行うことが可能となる．
+
+$bid_t$の効用，選択肢からモードや因子の値を推定する際，ダミーの提案として$bid_{dumU_t}$と$bid_{dumV_t}$を用いて計算を行う．
+ここで，$bid_{dumU_t}$および$bid_{dumV_t}$は$bid_t$と同様に$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
+1列目にはエージェントの選択肢$v_{kA}$，2列目には未配分の項目数，3列目には人間の選択肢$v_{kH}$が代入されている．
+$bid_{dumU_t}$と$bid_{dumV_t}$は\equref{eq:dummyutil}，\equref{eq:dummyvalue}で計算される．
+
+\begin{equation}
+    bid_{dumU_t}[k] = 
+    \begin{cases*}
+        \left(
+    \begin{array}{rrr}
+        0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
+    \end{array}
+    \right) & if k = $\displaystyle \min_{x \in \{y | v_{yH} + v_{yA} \neq 0, 1 \leqq y \leqq N \} } J_H[x]$ \\
+        bid_t[k] & otherwise
+    \end{cases*}
+    \label{eq:dummyutil}
+\end{equation}
+
+\begin{equation}
+    bid_{dumV_t}[k] = 
+        \left(
+    \begin{array}{rrr}
+        0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
+    \end{array}
+    \right)
+    \label{eq:dummyvalue}
+\end{equation}
+
+また相手から送信された全ての提案$bids = {bid_1, bid_2, \ldots , bid_t}$を2つに分割し計算で使用する．
+直近の$N_{offer}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$w^{pre}(0 < w^{pre} < 1)$を乗じて計算することで，
+過去の提案を参考にしつつ直近の提案を重視して特性の推定が可能になる．
+
+また，TKIにおける積極性，協調性やビッグファイブの各因子の値を$[-1, 1]$に正規化するために\equref{eq:normarize}のような関数を使用する．
+\begin{equation}
+    norm(x, x_{max}, x_{min}) = \frac{x - x_{min}}{x_{max} - x_{min}} \cdot 2 - 1
+    \label{eq:normarize}
+\end{equation}
+
+\subsection{TKIのモード推定}
+TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように提案によって得られる効用によって行う．
+協調性は効用の平均，積極性は効用の標準偏差で計算する．
+協調性は\equref{eq:cooperativeness}で計算する．
+\begin{align}
+    cooperativeness &= -norm(\mu, \max (w_{MAX_U} \cdot \mu_{dum}, \mu), \min (w_{MIN_U} \cdot \mu_{dum}, \mu)) \label{eq:cooperativeness} \\
+    \mu &= mean(U_H(bids^{pre})) \cdot w_{offer}^{pre} + mean(U_H(bids^{rec})) \nonumber 
+\end{align}
+\begin{align}
+    mean(utils) &= \frac{1}{size(utils)}\sum_{i = 1}^{size(utils)} utils[i] \nonumber \\
+    \mu_{dum} &= mean(dumU(bids_{dumU}^{pre})) \cdot w_{offer}^{pre} + mean(dumU(bids_{dumU}^{rec})) \nonumber \\
+    dumU(u) &=
+    \begin{cases*}
+        u & if $u \leqq 0.75$ \\
+        u \cdot (1.0 + u^{\frac{3}{2}} \cdot 0.2) & otherwise \\
+    \end{cases*} \label{eq:dummyMean}
+\end{align}
+
+積極性は\equref{eq:assertiveness}で計算する．
+\begin{align}
+    assertiveness &= -norm(\sigma, \max (w_{MAX_V} \cdot \sigma_{dum}, \sigma), \min (w_{MIN_V} \cdot \sigma_{dum}, \sigma)) \label{eq:assertiveness} \\
+    \sigma &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dev(bids^{rec}) \nonumber \\
+    dev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} |U_H(bids[i]) - mean(U_H(bids))| \nonumber \\
+    \sigma_{dum} &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
+    dumDev(bids) &= tempDev(mean(U_H(bids)) + devBias(bids, tempDev(mean(U_H(bids))) \nonumber \\
+    tempDev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} dumV(bids[i], mean(U_H(bids))) \nonumber \\
+    devBias(m, dev) &= 
+    \begin{cases*}
+        \frac{1}{(1.1 - m) \cdot 50dev + 0.01} \cdot 0.01 & if isNearZero \\
+        diffMaxMean() & otherwise 
+    \end{cases*} \label{eq:devBias} \\
+    diffMaxMean() &= \max U_H(bids^{rec}) - mean(U_H(bids^{rec})) \nonumber \\
+    {\rm isNearZero} &= \sum_{i = 1}^{size(bids^{rec})}undef(bids^{rec}[i]) \neq 0 \vee diffMaxMean() < \frac{0.022}{N_{offer}} \nonumber \\
+    undef(bid) &= \sum_{k = 1}^{N} (5 - v_{kA} - v_{kH}) \nonumber \\
+    dumV(bid, m) &=
+    \begin{cases*}
+        |dumU(U_H(bid)) - m| & if $dumU(U_H(bid)) \leqq 0.75$ \\
+        |dumU(U_H(bid)) - m| \\
+        \cdot (1.0 + (\sqrt{dumU(U_H(bid)) \cdot 1.25}) \cdot 0.7) & otherwise 
+    \end{cases*} \label{eq:dummyV}
+\end{align}
+
+部分的な提案が可能なIAGOでは交渉の序盤にお互いにとって利益の高い論点の割り当てが発生すると考えられる．
+したがって，交渉が進むにつれて$U_H(bid_t)$と$U_H(bid_{t-1})$の差は小さくなっていき，平均値および標準偏差の増分も小さくなるため，
+\equref{eq:cooperativeness}，\equref{eq:asseertiveness}では協調性，積極性の測定が正しく行えない可能性がある．
+そのため，交渉後半($U_H(bids[i]) > 0.75$)のダミーの提案の効用は\equref{eq:dummyMean}，\equref{eq:dummyV}のように実際より高い値で計算を行なっている．
+\equref{eq:devBias}は，効用があまり変動しないような提案が連続で行われた時にダミーの提案の標準偏差を高い値にするために加えた．
+これにより，同じような提案が連続で送信されると積極性が低くなる．
+
+\subsection{ビッグファイブの推定}
+
+TKIは相手の提案から推定を行い，ビッグファイブは提案と相手の行動を総合的に判断して各因子の推定を行う．
 各因子・カテゴリごとに譲歩速度や行動の頻度などのパラメータを設定しておき，エージェントは相手の特性に応じてこれらのパラメータの値を変更する．
+
 
 具体的には，TKIでは各カテゴリに分類される確率をそれぞれ計算し，確率を重みとしてパラメータごとに加重平均を計算し，その値を最終的なパラメータの値とする．
 ビッグファイブでは各因子の値をそれぞれ算出し，その値によって各因子ごとにパラメータを計算し，それらを平均したものを最終的なパラメータの値とする．
 こうしてTKIとビッグファイブそれぞれで計算したパラメータの値をさらに平均することによってエージェントの行動を変更する．
+
 
 \include{end}
