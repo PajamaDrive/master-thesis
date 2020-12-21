@@ -3,7 +3,7 @@
 \chapter{プロファイリングを用いた交渉戦略}
 相手の性格や特性を推定し，特性に応じて自分の行動を決定することは交渉を含めた日常生活でも頻繁に行われる．
 \chapref{chap:related}で述べたようにTKIは対立関係に置かれた際の人間の対応方法を分類したものであり，ビッグファイブは5つの因子の値によって人間の特性を表したものである．
-本研究では，TKIとビッグファイブを用いて相手の特性を推定し，相手の特性によって譲歩速度を変更するエージェントを提案する．
+本稿では，TKIとビッグファイブを用いて相手の特性を推定し，相手の特性によって譲歩速度を変更するエージェントを提案する．
 
 \section{戦略の概要}
 \begin{figure}[tb]
@@ -12,40 +12,65 @@
     \caption{プロファイリングを用いた戦略の概要}
     \label{fig:trait_estimate}
 \end{figure}
-エージェントは相手の提案や送信された感情，メッセージなどからTKIのモードとビッグファイブの各因子の値を推定する．
+エージェントは相手の提案や送信された感情，メッセージなどからTKIにおける協調性，積極性とビッグファイブの各因子の値を推定し，
+TKIについては各モードに分類される確率をそれぞれ求める．
 また，過去の提案や行動より現在の提案や行動に大きい重みをかけて平均などを計算することによってより柔軟な対応を実現する．
-推定した相手の特性によってエージェントの譲歩速度を変更する．
+推定した相手の各モードの分類確率および特性によってエージェントの譲歩速度を変更する．
 これにより，相手の特性に合わせた提案を行うことが可能となる．
 
-$bid_t$の効用，選択肢からモードや因子の値を推定する際，ダミーの提案として$bid_{dumU_t}$と$bid_{dumV_t}$を用いて計算を行う．
-ここで，$bid_{dumU_t}$および$bid_{dumV_t}$は$bid_t$と同様に$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
+エージェントは$bid_t$の効用，選択肢からモードや因子の値を推定する際，および目標効用を計算する際に，
+ダミーの提案として$bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$を用いる．
+これらは$bid_t$と同様に$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
 1列目にはエージェントの選択肢$v_{kA}$，2列目には未配分の項目数，3列目には人間の選択肢$v_{kH}$が代入されている．
-$bid_{dumU_t}$と$bid_{dumV_t}$は\equref{eq:dummyutil}，\equref{eq:dummyvalue}で計算される．
-
-\begin{equation}
-    bid_{dumU_t}[k] = 
+$bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyutil}，\equref{eq:dummyvalue}，\equref{eq:maxutil}で計算される．
+\begin{align}
+    bid_{dumU_t}[k] &= 
     \begin{cases*}
         \left(
     \begin{array}{rrr}
         0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
     \end{array}
-    \right) & if k = $\displaystyle \min_{x \in \{y | v_{yH} + v_{yA} \neq 0, 1 \leqq y \leqq N \} } J_H[x]$ \\
+    \right) & if k = $\displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq y \leqq N \} } J_H[x]$ \\
         bid_t[k] & otherwise
     \end{cases*}
-    \label{eq:dummyutil}
-\end{equation}
-
-\begin{equation}
-    bid_{dumV_t}[k] = 
+    \label{eq:dummyutil} \\
+    bid_{dumV_t}[k] &= 
         \left(
     \begin{array}{rrr}
         0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
     \end{array}
     \right)
-    \label{eq:dummyvalue}
+    \label{eq:dummyvalue} \\
+    bid_{max_t}[k] &= 
+        \left(
+    \begin{array}{rrr}
+        v_{kH} + v_{kA} & 5 - v_{kH} - v_{kA} & 0
+    \end{array}
+    \right)
+    \label{eq:maxutil} 
+\end{align}
+
+本稿で用いるエージェントはKoleyらと同様に目標効用$target(t,\alpha)$が得られるような提案を行う．
+ただし，部分的な提案に対応し，ビッグファイブの測定を追加したため，\equref{eq:target}，\equref{eq:gamma}はそれぞれ\equref{eq:newtarget}，\equref{eq:newgamma}のように変更している．
+なお，$u_{bias}$，$w_{bias}$，$\gamma_{min}$，$\alpha$，$n$は相手の特性によって値が変化する．
+\begin{align}
+    target(t,\alpha) &= 
+    \begin{cases*}
+        \gamma_{min} + \Delta \cdot \Gamma(t,\alpha) & if $U_A(bid_{max_t}) \geqq 0.02$  \\
+        0.02 & otherwise 
+    \end{cases*} \label{eq:newtarget}\\
+    \Gamma(t,\alpha) &= \max \left( 0.0, 1 - \max \left( 0.0, u_{bias} + w_{bias} \cdot \frac{U_A(bid_{t - 1})}{U_A(bid_{max_t})} \right) \cdot \left( \frac{t}{n} \right)^{\frac{1}{\alpha}} \right) \label{eq:newgamma}
+\end{align}
+
+本稿では，相手の提案を受諾する際の戦略はIAGOのデフォルトエージェントで用いられているものを使用する．
+すなわち，\equref{eq:acceptance}が真になるような提案がなされたとき，その提案を受諾する．
+なお，すでに受諾したまたは相手に受諾された提案を$bid_{accept}$とし，$margin$は$0 \leqq margin \leqq 0.08$であり，エージェントが相手の提案を拒否するごとに0.02ずつ加算されていく．
+\begin{equation}
+    U_A(bid_t) > U_A(bid_{accept}) \vee  U_A(bid_t) - U_A(bid_{accept}) + margin > U_H(bid_t) - U_H(bid_{accept}) 
+    \label{eq:acceptance}
 \end{equation}
 
-また相手から送信された全ての提案$bids = {bid_1, bid_2, \ldots , bid_t}$を2つに分割し計算で使用する．
+また，エージェントは相手から送信された全ての提案$bids = {bid_1, bid_2, \ldots , bid_t}$を2つに分割し計算で使用する．
 直近の$N_{offer}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$w^{pre}(0 < w^{pre} < 1)$を乗じて計算することで，
 過去の提案を参考にしつつ直近の提案を重視して特性の推定が可能になる．
 
@@ -60,10 +85,8 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 協調性は効用の平均，積極性は効用の標準偏差で計算する．
 協調性は\equref{eq:cooperativeness}で計算する．
 \begin{align}
-    cooperativeness &= -norm(\mu, \max (w_{MAX_U} \cdot \mu_{dum}, \mu), \min (w_{MIN_U} \cdot \mu_{dum}, \mu)) \label{eq:cooperativeness} \\
-    \mu &= mean(U_H(bids^{pre})) \cdot w_{offer}^{pre} + mean(U_H(bids^{rec})) \nonumber 
-\end{align}
-\begin{align}
+    coop &= -norm(\mu, \max (w_{MAX_U} \cdot \mu_{dum}, \mu), \min (w_{MIN_U} \cdot \mu_{dum}, \mu)) \label{eq:cooperativeness} \\
+    \mu &= mean(U_H(bids^{pre})) \cdot w_{offer}^{pre} + mean(U_H(bids^{rec})) \nonumber \\
     mean(utils) &= \frac{1}{size(utils)}\sum_{i = 1}^{size(utils)} utils[i] \nonumber \\
     \mu_{dum} &= mean(dumU(bids_{dumU}^{pre})) \cdot w_{offer}^{pre} + mean(dumU(bids_{dumU}^{rec})) \nonumber \\
     dumU(u) &=
@@ -75,12 +98,14 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 
 積極性は\equref{eq:assertiveness}で計算する．
 \begin{align}
-    assertiveness &= -norm(\sigma, \max (w_{MAX_V} \cdot \sigma_{dum}, \sigma), \min (w_{MIN_V} \cdot \sigma_{dum}, \sigma)) \label{eq:assertiveness} \\
+    assert &= -norm(\sigma, \max (w_{MAX_V} \cdot \sigma_{dum}, \sigma), \min (w_{MIN_V} \cdot \sigma_{dum}, \sigma)) \label{eq:assertiveness} \\
     \sigma &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dev(bids^{rec}) \nonumber \\
     dev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} |U_H(bids[i]) - mean(U_H(bids))| \nonumber \\
     \sigma_{dum} &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
     dumDev(bids) &= tempDev(mean(U_H(bids)) + devBias(bids, tempDev(mean(U_H(bids))) \nonumber \\
-    tempDev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} dumV(bids[i], mean(U_H(bids))) \nonumber \\
+    tempDev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} dumV(bids[i], mean(U_H(bids))) \nonumber 
+\end{align}
+\begin{align}
     devBias(m, dev) &= 
     \begin{cases*}
         \frac{1}{(1.1 - m) \cdot 50dev + 0.01} \cdot 0.01 & if isNearZero \\
@@ -93,26 +118,103 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
     \begin{cases*}
         |dumU(U_H(bid)) - m| & if $dumU(U_H(bid)) \leqq 0.75$ \\
         |dumU(U_H(bid)) - m| \\
-        \cdot (1.0 + (\sqrt{dumU(U_H(bid)) \cdot 1.25}) \cdot 0.7) & otherwise 
+        \cdot \left( 1.0 + \sqrt{dumU(U_H(bid)) \cdot 1.25} \cdot 0.7 \right) & otherwise 
     \end{cases*} \label{eq:dummyV}
 \end{align}
 
 部分的な提案が可能なIAGOでは交渉の序盤にお互いにとって利益の高い論点の割り当てが発生すると考えられる．
 したがって，交渉が進むにつれて$U_H(bid_t)$と$U_H(bid_{t-1})$の差は小さくなっていき，平均値および標準偏差の増分も小さくなるため，
-\equref{eq:cooperativeness}，\equref{eq:asseertiveness}では協調性，積極性の測定が正しく行えない可能性がある．
+\equref{eq:cooperativeness}，\equref{eq:assertiveness}では協調性，積極性の測定が正しく行えない可能性がある．
 そのため，交渉後半($U_H(bids[i]) > 0.75$)のダミーの提案の効用は\equref{eq:dummyMean}，\equref{eq:dummyV}のように実際より高い値で計算を行なっている．
 \equref{eq:devBias}は，効用があまり変動しないような提案が連続で行われた時にダミーの提案の標準偏差を高い値にするために加えた．
 これにより，同じような提案が連続で送信されると積極性が低くなる．
 
+TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertiveness}により計算した，協調性と積極性の組$P_h = (coop, assert)$を使用する．
+協調性を$x$軸，積極性を$y$軸とし，妥協以外の4つのモードについて\tabref{tab:tki-param}に示すようなパラメータを設定する．
+なお，各モードの中庸である妥協モードは本稿では使用しない．
+
+\begin{table}[b]
+    \centering
+    \caption{TKIのパラメータ}
+    \begin{tabular}{llll} \toprule
+        モード & モードの座標 & $\alpha$ & $n$ \\ \midrule
+        共存 & $P_{col} = (1, 1)$ & 0.95 & 20 \\
+        順応 & $P_{acc} = (1, -1)$ & 0.95 & 10 \\
+        競争 & $P_{com} = (-1, 1)$ & 0.01 & 20\\
+        回避 & $P_{avo} = (-1, -1)$ & 0.01 & 10 \\ \bottomrule
+    \end{tabular}
+    \label{tab:tki-param}
+\end{table}
+
+これらのモードと$P_h$との距離の逆数$invDist$をそれぞれ計算する．
+ただし，$P_h$といずれかのモードの座標との距離が0である場合はそのモードのみ$invDist$の値を十分に大きい値に設定する．
+そして，$invDist$をこれらの総和$invDistSum$で割ることによって各モードまでの距離の逆数の比$ratio$を求める．
+各モードの$ratio$の値をそのモードに分類される確率とする．
+各モードに設定された$\alpha$，$n$の値に$ratio$の値を重みとして乗じた$\alpha$，$n$の重み付き和を計算する．
+ただし，$P_h$といずれかのモードの座標との距離が0である場合はそのモードに設定された$\alpha$，$n$の値をそのまま使用する．
+
+例として，$P_h = (0.3, -0.4)$だった場合を考える．
+各モードの$invDist$および$invDistSum$は以下のようになる．
+\begin{align}
+    invDist_{col} &= \overline{P_h P_{col}} = \frac{1}{\sqrt{(0.3 - 1)^2 + (-0.4 - 1)^2}} \sim 0.639 \nonumber\\
+    invDist_{acc} &= \overline{P_h P_{acc}} = \frac{1}{\sqrt{(0.3 - 1)^2 + (-0.4 - (-1))^2}} \sim 1.084 \nonumber\\
+    invDist_{com} &= \overline{P_h P_{com}} = \frac{1}{\sqrt{(0.3 - (-1))^2 + (-0.4 - 1)^2}} \sim 0.523 \nonumber\\
+    invDist_{avo} &= \overline{P_h P_{avo}} = \frac{1}{\sqrt{(0.3 - (-1))^2 + (-0.4 - (-1))^2}} \sim 0.698 \nonumber\\
+    invDistSum &= invDist_{col} + invDist_{acc} + invDist_{com} + invDist_{avo} \sim 2.944 \nonumber
+\end{align}
+したがって，各モードに分類される確率は以下のようになる．
+\begin{align}
+    ratio_{col} &= \frac{invDist_{col}}{invDistSum} \sim 0.217 \nonumber\\
+    ratio_{acc} &= \frac{invDist_{acc}}{invDistSum} \sim 0.368 \nonumber\\
+    ratio_{com} &= \frac{invDist_{com}}{invDistSum} \sim 0.178 \nonumber\\
+    ratio_{avo} &= \frac{invDist_{avo}}{invDistSum} \sim 0.237 \nonumber
+\end{align}
+これにより，TKIによって計算されるエージェントのパラメータはそれぞれ\equref{eq:tki-alpha}，\equref{eq:tki-n}となる．
+\begin{align}
+    \alpha &= ratio_{col} \cdot 0.95 + ratio_{acc} \cdot 0.95 + ratio_{com} \cdot 0.01 + ratio_{avo} \cdot 0.01 \sim 0.560 \label{eq:tki-alpha} \\
+    n &= \lfloor ratio_{col} \cdot 20 + ratio_{acc} \cdot 10 + ratio_{com} \cdot 20 + ratio_{avo} \cdot 10 \rfloor \sim 13 \label{eq:tki-n}
+\end{align}
+
 \subsection{ビッグファイブの推定}
+ビッグファイブの推定ではHindriksら\cite{sensebeh}が用いた相手の行動に対する感受性という指標を一部修正し使用する．
+相手の行動に対する感受性は\tabref{tab:sensebeh}に示すクラスを用いて計算する．
+なお，$\Delta U_H = U_H(bid_t) - U_H(bid_{t - 1})$，$\Delta U_A = U_A(bid_t) - U_A(bid_{t - 1})$，$U_A(bid_0) = U_H(bid_0) = 0.0$とする．
+\begin{table}[b]
+    \centering
+    \caption{相手の行動に対する感受性と用いるクラス}
+    \begin{tabular}{lcc} \toprule
+        クラス & 人間の効用の増分 & エージェントの効用の増分 \\ \midrule
+        $Silent$ & $\Delta U_H = 0$ & $\Delta U_A = 0$ \\
+        $Nice$ & $\Delta U_H = 0$ & $\Delta U_A > 0$ \\
+        $Fortunate$ & $\Delta U_H > 0$ & $\Delta U_A > 0$ \\
+        \multirow{2}{*}{$Selfish$} & $\Delta U_H \geqq 0$ & $\Delta U_A < 0$ \\ 
+         & $\Delta U_H > 0$ & $\Delta U_A = 0$ \\ 
+        $Concession$ & $\Delta U_H < 0$ & $\Delta U_A \geqq 0$ \\
+        $Unfortunate$ & $\Delta U_H < 0$ & $\Delta U_A < 0$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:sensebeh}
+\end{table}
 
-TKIは相手の提案から推定を行い，ビッグファイブは提案と相手の行動を総合的に判断して各因子の推定を行う．
-各因子・カテゴリごとに譲歩速度や行動の頻度などのパラメータを設定しておき，エージェントは相手の特性に応じてこれらのパラメータの値を変更する．
+また，各クラスに対してクラスの割合として\equref{eq:class}を定義する．
+ここで，$t_{class}$はラウンド$t$までに$class$に該当した回数である．
+\begin{equation}
+    \%_{class}(t) = \frac{t_{class}}{t} 
+    \label{eq:class}
+\end{equation}
+\equref{eq:class}を用いて行動に対する感受性を\equref{eq:sensebeh}と定義する．
+\begin{equation}
+    senseBeh = \frac{\%_{Fortunate} + \%_{Nice} + \%_{Concession}}{\%_{Selfish} + \%_{Unfortunate} + \%_{Silent}} 
+    \label{eq:sensebeh}
+\end{equation}
+行動に対する感受性が1より小さいとき，人間はエージェントの行動に対して鈍感である．
+行動に対する感受性が1より大きいとき，人間はエージェントの行動に対して敏感であり，分母が0の場合は人間はエージェントの行動に対して極めて敏感である．
 
+\subsubsection{神経症傾向}
 
-具体的には，TKIでは各カテゴリに分類される確率をそれぞれ計算し，確率を重みとしてパラメータごとに加重平均を計算し，その値を最終的なパラメータの値とする．
-ビッグファイブでは各因子の値をそれぞれ算出し，その値によって各因子ごとにパラメータを計算し，それらを平均したものを最終的なパラメータの値とする．
-こうしてTKIとビッグファイブそれぞれで計算したパラメータの値をさらに平均することによってエージェントの行動を変更する．
+\subsubsection{外向性}
+\subsubsection{経験への解放性}
+\subsubsection{協調性}
+\subsubsection{誠実性}
 
 
 \include{end}
