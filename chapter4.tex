@@ -30,7 +30,7 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \begin{array}{rrr}
         0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
     \end{array}
-    \right) & if k = $\displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq y \leqq N \} } J_H[x]$ \\
+    \right) & if k = $\displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ \\
         bid_t[k] & otherwise
     \end{cases*}
     \label{eq:dummyutil} \\
@@ -52,14 +52,14 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
 
 本稿で用いるエージェントはKoleyらと同様に目標効用$target(t,\alpha)$が得られるような提案を行う．
 ただし，部分的な提案に対応し，ビッグファイブの測定を追加したため，\equref{eq:target}，\equref{eq:gamma}はそれぞれ\equref{eq:newtarget}，\equref{eq:newgamma}のように変更している．
-なお，$u_{bias}$，$w_{bias}$，$\gamma_{min}$，$\alpha$，$n$は相手の特性によって値が変化する．
+なお，$u_{bias}$，$\lambda_{bias}$，$\gamma_{min}$，$\alpha$，$n$は相手の特性によって値が変化する．
 \begin{align}
     target(t,\alpha) &= 
     \begin{cases*}
         \gamma_{min} + \Delta \cdot \Gamma(t,\alpha) & if $U_A(bid_{max_t}) \geqq 0.02$  \\
         0.02 & otherwise 
     \end{cases*} \label{eq:newtarget}\\
-    \Gamma(t,\alpha) &= \max \left( 0.0, 1 - \max \left( 0.0, u_{bias} + w_{bias} \cdot \frac{U_A(bid_{t - 1})}{U_A(bid_{max_t})} \right) \cdot \left( \frac{t}{n} \right)^{\frac{1}{\alpha}} \right) \label{eq:newgamma}
+    \Gamma(t,\alpha) &= \max \left( 0.0, 1 - \max \left( 0.0, u_{bias} + \lambda_{bias} \cdot \frac{U_A(bid_{t - 1})}{U_A(bid_{max_t})} \right) \cdot \left( \frac{t}{n} \right)^{\frac{1}{\alpha}} \right) \label{eq:newgamma}
 \end{align}
 
 本稿では，相手の提案を受諾する際の戦略はIAGOのデフォルトエージェントで用いられているものを使用する．
@@ -70,8 +70,8 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \label{eq:acceptance}
 \end{equation}
 
-また，エージェントは相手から送信された全ての提案$bids = {bid_1, bid_2, \ldots , bid_t}$を2つに分割し計算で使用する．
-直近の$N_{offer}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$w^{pre}(0 < w^{pre} < 1)$を乗じて計算することで，
+また，エージェントは相手から送信された全ての提案$bids = \{ bid_1, bid_2, \ldots , bid_t \}$を2つに分割し計算で使用する．
+直近の$N_{\mathit{bid}}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$\psi_{\mathit{bid}}^{pre}(0 \leqq \psi_{\mathit{bid}}^{pre} \leqq 1)$を乗じて計算することで，
 過去の提案を参考にしつつ直近の提案を重視して特性の推定が可能になる．
 
 また，TKIにおける積極性，協調性やビッグファイブの各因子の値を$[-1, 1]$に正規化するために\equref{eq:normarize}のような関数を使用する．
@@ -85,10 +85,10 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 協調性は効用の平均，積極性は効用の標準偏差で計算する．
 協調性は\equref{eq:cooperativeness}で計算する．
 \begin{align}
-    coop &= -norm(\mu, \max (w_{MAX_U} \cdot \mu_{dum}, \mu), \min (w_{MIN_U} \cdot \mu_{dum}, \mu)) \label{eq:cooperativeness} \\
-    \mu &= mean(U_H(bids^{pre})) \cdot w_{offer}^{pre} + mean(U_H(bids^{rec})) \nonumber \\
-    mean(utils) &= \frac{1}{size(utils)}\sum_{i = 1}^{size(utils)} utils[i] \nonumber \\
-    \mu_{dum} &= mean(dumU(bids_{dumU}^{pre})) \cdot w_{offer}^{pre} + mean(dumU(bids_{dumU}^{rec})) \nonumber \\
+    coop &= -norm \left(\mu, \max \left( \mu, \mu_{dum} \cdot \xi_{max}^{util}\right) , \min \left( \mu, \mu_{dum} \cdot \xi_{min}^{util} \right) \right) \label{eq:cooperativeness} \\
+    \mu &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bid}}^{pre} + mean(U_H(bids^{rec})) \nonumber \\
+    mean(utils) &= \frac{1}{size(utils)}\sum_{i = 1}^{size(utils)} utils_i \nonumber \\
+    \mu_{dum} &= mean(dumU(bids_{dumU}^{pre})) \cdot \psi_{\mathit{bid}}^{pre} + mean(dumU(bids_{dumU}^{rec})) \nonumber \\
     dumU(u) &=
     \begin{cases*}
         u & if $u \leqq 0.75$ \\
@@ -98,22 +98,22 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 
 積極性は\equref{eq:assertiveness}で計算する．
 \begin{align}
-    assert &= -norm(\sigma, \max (w_{MAX_V} \cdot \sigma_{dum}, \sigma), \min (w_{MIN_V} \cdot \sigma_{dum}, \sigma)) \label{eq:assertiveness} \\
-    \sigma &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dev(bids^{rec}) \nonumber \\
-    dev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} |U_H(bids[i]) - mean(U_H(bids))| \nonumber \\
-    \sigma_{dum} &= dev(bids^{pre}) \cdot w_{offer}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
-    dumDev(bids) &= tempDev(mean(U_H(bids)) + devBias(bids, tempDev(mean(U_H(bids))) \nonumber \\
-    tempDev(bids) &= \frac{1}{\sqrt{size(bids)}}\sum_{i = 1}^{size(bids)} dumV(bids[i], mean(U_H(bids))) \nonumber 
+    assert &= -norm \left(\sigma, \max \left(\sigma, \sigma_{dum} \cdot \xi_{max}^{dev}\right), \min \left(\sigma, \sigma_{dum} \cdot \xi_{min}^{dev}\right) \right) \label{eq:assertiveness} \\
+    \sigma &= dev(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev(bids^{rec}) \nonumber \\
+    dev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} |U_H(argbids_i) - mean(U_H(argbids))| \nonumber \\
+    \sigma_{dum} &= dev(bids_{dumU}^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
+    dumDev(argbids) &= tempDev(argbids) + devBias(mean(U_H(argbids)), tempDev(argbids)) \nonumber \\
+    tempDev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} dumV(argbids_i, mean(U_H(argbids))) \nonumber 
 \end{align}
 \begin{align}
     devBias(m, dev) &= 
     \begin{cases*}
         \frac{1}{(1.1 - m) \cdot 50dev + 0.01} \cdot 0.01 & if isNearZero \\
-        diffMaxMean() & otherwise 
+        \mathit{diffMaxMean} & otherwise 
     \end{cases*} \label{eq:devBias} \\
-    diffMaxMean() &= \max U_H(bids^{rec}) - mean(U_H(bids^{rec})) \nonumber \\
-    {\rm isNearZero} &= \sum_{i = 1}^{size(bids^{rec})}undef(bids^{rec}[i]) \neq 0 \vee diffMaxMean() < \frac{0.022}{N_{offer}} \nonumber \\
-    undef(bid) &= \sum_{k = 1}^{N} (5 - v_{kA} - v_{kH}) \nonumber \\
+    \mathit{diffMaxMean} &= \max U_H(bids^{rec}) - mean(U_H(bids^{rec})) \nonumber \\
+    {\rm isNearZero} &= \sum_{i = 1}^{size(bids^{rec})}\mathit{undef}(bids^{rec}_i) \neq 0 \vee \mathit{diffMaxMean} < \frac{0.022}{N_{bid}} \nonumber \\
+    \mathit{undef}(bid) &= \sum_{k = 1}^{N} bid[k][1] \nonumber \\
     dumV(bid, m) &=
     \begin{cases*}
         |dumU(U_H(bid)) - m| & if $dumU(U_H(bid)) \leqq 0.75$ \\
@@ -176,7 +176,15 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
 \end{align}
 
 \subsection{ビッグファイブの推定}
-ビッグファイブの推定ではHindriksら\cite{sensebeh}が用いた相手の行動に対する感受性という指標を一部修正し使用する．
+ビッグファイブは提案内容だけでなく相手の行動も考慮し各因子の値を測定する．
+提案と同様に行動も2つに分割して計算を行う．
+ラウンド$t$までに相手から送信された提案以外の行動の数を$\tau$とする．
+相手から送信された提案以外の全ての行動$behs = \{ beh_1, beh_2, \ldots , beh_\tau \}$のうち，
+直近の$N_{beh}$個の行動を$behs^{rec}$，それ以前の行動を$behs^{pre}$とし，
+$behs^{pre}$には$\psi_{beh}^{pre}(0 \leqq \psi_{beh}^{pre} \leqq 1)$を乗じて計算する．
+なお，$behs$のうち特定の行動$\rho$に該当する部分集合を$behs\{\rho\}$とする．
+
+また，ビッグファイブの推定ではHindriksら\cite{sensebeh}が用いた相手の行動に対する感受性という指標を一部修正し使用する．
 相手の行動に対する感受性は\tabref{tab:sensebeh}に示すクラスを用いて計算する．
 なお，$\Delta U_H = U_H(bid_t) - U_H(bid_{t - 1})$，$\Delta U_A = U_A(bid_t) - U_A(bid_{t - 1})$，$U_A(bid_0) = U_H(bid_0) = 0.0$とする．
 \begin{table}[b]
@@ -187,34 +195,271 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
         $Silent$ & $\Delta U_H = 0$ & $\Delta U_A = 0$ \\
         $Nice$ & $\Delta U_H = 0$ & $\Delta U_A > 0$ \\
         $Fortunate$ & $\Delta U_H > 0$ & $\Delta U_A > 0$ \\
-        \multirow{2}{*}{$Selfish$} & $\Delta U_H \geqq 0$ & $\Delta U_A < 0$ \\ 
+        \multirow{2}{*}{$\mathit{Selfish}$} & $\Delta U_H \geqq 0$ & $\Delta U_A < 0$ \\ 
          & $\Delta U_H > 0$ & $\Delta U_A = 0$ \\ 
         $Concession$ & $\Delta U_H < 0$ & $\Delta U_A \geqq 0$ \\
-        $Unfortunate$ & $\Delta U_H < 0$ & $\Delta U_A < 0$ \\ \bottomrule
+        $\mathit{Unfortunate}$ & $\Delta U_H < 0$ & $\Delta U_A < 0$ \\ \bottomrule
     \end{tabular}
     \label{tab:sensebeh}
 \end{table}
 
-また，各クラスに対してクラスの割合として\equref{eq:class}を定義する．
-ここで，$t_{class}$はラウンド$t$までに$class$に該当した回数である．
+ここで，クラスを計算するために$bids^{rec}$，$bids^{pre}$とは別に
+$bids$を2つに分割したものを計算で使用する．
+直近の$N_{\mathit{off}}$個の提案を$\mathit{offs}^{rec}$，それ以前の提案を$\mathit{offs}^{pre}$とし，
+$\mathit{offs}^{pre}$には$\psi_{\mathit{off}}^{pre}(0 \leqq \psi_{\mathit{off}}^{pre} \leqq 1)$を乗じて計算する．
+また，各クラスに対してクラスの和，クラスの割合をそれぞれ\equref{eq:classSum}，\equref{eq:classRate}を定義する．
+ここで，$\mathit{offs}\{class\}$は$\mathit{offs}$において$class$に該当する部分集合である．
+\begin{align}
+    \Sigma_{class} &= size(\mathit{offs}^{pre}\{class\} \cdot \psi_{\mathit{off}}^{pre} + size(\mathit{offs}^{rec}\{class\} \label{eq:classSum} \\
+    \%_{class} &= \frac{size(\mathit{offs}^{pre}\{class\})}{size(\mathit{offs})} \cdot \psi_{\mathit{off}}^{pre} + \frac{size(\mathit{offs^{rec}}\{class\})}{size(\mathit{offs}^{rec})} 
+    \label{eq:classRate}
+\end{align}
+なお，\equref{eq:classRate}の1項目の分母が$size(\mathit{offs}^{pre})$ではなく$size(\mathit{offs})$であるのは，
+$size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなりすぎるのを防ぐためである．
+\equref{eq:classSum}を用いて行動に対する感受性を\equref{eq:sensebeh}と定義する．
 \begin{equation}
-    \%_{class}(t) = \frac{t_{class}}{t} 
-    \label{eq:class}
-\end{equation}
-\equref{eq:class}を用いて行動に対する感受性を\equref{eq:sensebeh}と定義する．
-\begin{equation}
-    senseBeh = \frac{\%_{Fortunate} + \%_{Nice} + \%_{Concession}}{\%_{Selfish} + \%_{Unfortunate} + \%_{Silent}} 
+    senseBeh = \frac{\Sigma_{Fortunate} + \Sigma_{Nice} + \Sigma_{Concession}}{\Sigma_{\mathit{Selfish}} + \Sigma_{\mathit{Unfortunate}} + \Sigma_{Silent}} 
     \label{eq:sensebeh}
 \end{equation}
 行動に対する感受性が1より小さいとき，人間はエージェントの行動に対して鈍感である．
 行動に対する感受性が1より大きいとき，人間はエージェントの行動に対して敏感であり，分母が0の場合は人間はエージェントの行動に対して極めて敏感である．
 
+交渉は提案の送信が主目的であり，人によっては提案以外の行動を行わない可能性がある．
+そのため，最初は提案に対する重みを大きめに設定し因子の測定を行い，提案以外の行動回数に応じて提案に対する重みを小さくしていく．
+相手の提案以外の行動の回数を$n_{beh}$とする．
+このとき，提案に対する重み$\nu_{\mathit{off}}$，提案以外の行動に対する重み$\nu_{beh}$はそれぞれ\equref{eq:offW}，\equref{eq:behW}で計算される．
+\begin{align}
+    \nu_{\mathit{off}} &= \max \left( 0.5, 1.0 - \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:offW} \\
+    \nu_{beh} &= \min \left( 0.5, \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:behW} 
+\end{align}
+
 \subsubsection{神経症傾向}
+神経症傾向が高い人は脅威に対する警戒心が高い．
+交渉における最大の脅威は交渉の決裂であると考えられる．
+そのため，神経症傾向が高ければ交渉の決裂を避けるため，できるだけ受諾されやすい提案を行うと推測される．
+よって，エージェントの利益を優先させる提案が行われたことを表すクラスである$Nice$と$Concesion$を測定に用いる．
+また，神経症傾向が高い人はストレスを感じやすい．
+したがって，ネガティブな行動が増えると考えられるため，ネガティブな感情，ネガティブなメッセージの送信数を測定に用いる．
+なお，IAGOには人間が送信可能なネガティブ感情として“Angry"と“Sad"が用意されている．
+“Angry"の方が“Sad"に比べて相手に対して否定的であると考えられるため，“Sad"に小さい重みをかける．
+
+これらを踏まえ，本稿では神経症傾向は\tabref{tab:neuroticism}に示す要素によって測定を行う．
+
+\begin{table}[tb]
+    \centering
+    \caption{神経症傾向の測定に用いる交渉の要素}
+    \begin{tabular}{l} \toprule
+        $\%_{Nice}$ \\
+        $\%_{Concession}$ \\
+        ネガティブな感情$behs\{emo_{neg}\}$ \\
+        ネガティブなメッセージ$behs\{mes_{neg}\}$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:neuroticism}
+\end{table}
+
+神経症傾向は\equref{eq:neuroticism}で計算する．
+\begin{align}
+    neuro &= \mathit{neuroOff} \cdot \nu_{\mathit{off}} + neuroBeh \cdot \nu_{beh} \label{eq:neuroticism} \\
+    \mathit{neuroOff} &= norm\left(niceCon, \max \left( niceCon, \xi_{max}^{\mathit{offN}}\right) , \min \left(niceCon, \xi_{min}^{\mathit{offN}}\right) \right) \nonumber \\
+    niceCon &= \%_{Nice} + \%_{Concession} \nonumber \\
+    neuroBeh &= norm\left( negBeh, \max \left( negBeh, \xi_{max}^{\mathit{behN}}\right), 0.0 \right) \nonumber \\
+    negBeh &=  neg(behs^{pre}) \cdot \psi_{beh}^{pre} + neg(behs^{rec}) \nonumber \\
+    neg(argbehs) &= size(argbehs\{mes_{neg}\}) + size(argbehs\{emo_{Angry}\}) \nonumber \\
+    &+ size(argbehs\{emo_{Sad}\}) \cdot 0.5 \nonumber 
+\end{align}
 
 \subsubsection{外向性}
-\subsubsection{経験への解放性}
-\subsubsection{協調性}
-\subsubsection{誠実性}
+外向性が高い人は報酬に対しての欲求が非常に高い．
+交渉において，報酬はすなわち自身の効用である．
+したがって，外向性が高ければ自身の効用が高くなるような提案を行うと推測される．
+よって，人間の利益を優先させる提案が行われたことを表すクラスである$\mathit{Selfish}$と$Fortunate$を外向性の測定に用いる．
+また，エージェントに対して人間にとって良い提案を送信するように頼むメッセージとしてFAVOR\_REQUESTが用意されている．
+FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが高くなるような提案を送信する．
+そのため，FAVOR\_REQUESTが送信される回数が多いほど報酬が高くなるため，外向性が高いと考えられる．
+また，外向性が高い人は社交的である．
+したがって，提案や行動の頻度が高いほど．外向性が高いと推測できる．
 
+これらを踏まえ，外向性は\tabref{tab:extraversion}に示す要素によって測定を行う．
+
+\begin{table}[tb]
+    \centering
+    \caption{外向性の測定に用いる交渉の要素}
+    \begin{tabular}{l} \toprule
+        $\%_{\mathit{Selfish}}$ \\
+        $\%_{Fortunate}$ \\
+        FAVOR\_REQUEST$behs\{mes_{\mathit{favReq}}\}$ \\
+        行動の頻度$\mathit{freq}$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:extraversion}
+\end{table}
+
+行動の頻度を計算するために$behTimings = \{time_1, time_2 , \ldots , time_{t+\tau}\}$を定義する．
+なお，$time$は行動もしくは提案が行われた瞬間の交渉経過時間とする．
+
+外向性は\equref{eq:extraversion}で計算する．
+\begin{align}
+    extra &= \mathit{extraOff} \cdot \nu_{\mathit{off}} + extraBeh \cdot \nu_{beh} \label{eq:extraversion} \\
+    \mathit{extraOff} &= norm\left( \mathit{selfFort}, \max \left( \mathit{selfFort}, \xi_{max}^{\mathit{offE}}\right) , \min \left( \mathit{selfFort}, \xi_{min}^{\mathit{offE}}\right) \right) \nonumber \\
+    \mathit{selfFort} &= \%_{\mathit{Selfish}} + \%_{Fortunate} \nonumber \\
+    extraBeh &= \min \left( 1.0, -norm\left( \mathit{freq}, \max \left( \mathit{freq}, \xi_{max}^{\mathit{freq}}\right), \min\left( \mathit{freq}, \xi_{min}^{\mathit{freq}}\right) \right) + \mathit{favReq}\right) \nonumber \\
+    \mathit{freq} &= \frac{behTimings^{pre}_{size(behTimings^{pre})} - behTimings^{pre}_0)}{size(behTimings^{pre})} \cdot \psi_{\mathit{beh}}^{pre} \nonumber \\
+    &+ \frac{behTimings^{rec}_{size(behTimings^{rec})} - behTimings^{rec}_0)}{size(behTimings^{rec})} \nonumber \\
+    \mathit{favReq} &= norm\left( \mathit{favReqNum}, \max \left( \mathit{favReqNum}, \xi_{max}^{\mathit{favReq}}\right), \xi_{min}^{\mathit{favReq}} \right) \nonumber \\
+    \mathit{favReqNum} &= size(behs\{mes_{\mathit{favReq}}\}) \nonumber
+\end{align}
+
+\subsubsection{経験への開放性}
+経験への開放性が高い人は知的好奇心が非常に高い．
+各論点の選択肢が異なっても効用が同じ提案が存在する場合がある．
+経験への開放性が高い人はさまざまな提案を送信し合意案を探索すると推測される．
+そのため，提案の選択肢の標準偏差を経験への開放性の測定に使用する．
+また，知的好奇心が高いため相手の情報について質問する回数が高いと考えられる．
+よって，選好やBATNAについてエージェントに質問した回数を測定に使用する．
+IAGOにはエージェントに対して選好をランダムで1つ送信するように依頼するためのメッセージとしてPREF\_REQUESTが用意されている．
+PREF\_REQUESTもエージェントに対する質問に関するメッセージなので経験への開放性の測定に用いる．
+
+これらを踏まえ，経験への開放性は\tabref{tab:openness}に示す要素によって測定を行う．
+
+\begin{table}[tb]
+    \centering
+    \caption{経験への開放性の測定に用いる交渉の要素}
+    \begin{tabular}{l} \toprule
+        提案の選択肢の標準偏差$dev_{val}$ \\
+        選好の質問$behs\{mes_{\mathit{preAsk}}\}$  \\
+        BATNAの質問$behs\{mes_{\mathit{batAsk}}\}$ \\
+        PREF\_REQUEST$behs\{mes_{\mathit{preReq}}\}$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:openness}
+\end{table}
+
+経験への開放性は\equref{eq:openness}で計算する．
+\begin{align}
+    open &= \mathit{openOff} \cdot \nu_{\mathit{off}} + openBeh \cdot \nu_{beh} \label{eq:openness} \\
+    \mathit{openOff} &= norm \left(\eta, \max \left(\eta, \eta_{dum} \cdot \xi_{max}^{devO}\right), \min \left(\eta, \eta_{dum} \cdot \xi_{min}^{devO}\right) \right) \nonumber \\
+    \eta &= dev_{val}(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev_{val}(bids^{rec}) \nonumber \\
+    dev_{val}(argbids) &= \frac{1}{\sqrt{size(argbids \cdot N}}\sum_{i = 1}^{size(argbids)} \sum_{j = 1}^{N} \left| argbids_i[j][2] - mean_{val}(argbids)[j] \right| \nonumber \\
+    mean_{val}(argbids) &= \frac{1}{size(argbids)}\left(\sum_{i = 1}^{size(argbids)} (argbids_i)^{\mathrm{T}}[2] \right)^{\mathrm{T}} \nonumber \\
+    \eta_{dum} &= dumDev_{val}(bids_{dumV}^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dumDev_{val}(bids_{dumV}^{rec}) \nonumber \\
+    dumDev_{val}(argbids) &= dev_{val}(argbids) + biasV(dev_{val}(argbids)) \nonumber \\
+    biasV(dev) &= 
+    \begin{cases*}
+        \frac{1}{0.5 \cdot \max (0.0, dev - 1.5) + 0.01 \cdot \max (0.01, dev)} \cdot 0.5 & if isNearZero \\
+        \mathit{diffMaxMean} \cdot 25 \cdot N_{bid} \cdot N & otherwise 
+    \end{cases*} \nonumber \\
+    openBeh &= norm\left( askBeh, \max \left( askBeh, \xi_{max}^{\mathit{behO}}\right), 0.0 \right) \nonumber \\
+    askBeh &=  ask(behs^{pre}) \cdot \psi_{beh}^{pre} + ask(behs^{rec}) + size(behs\{mes_{\mathit{preReq}}\}) \nonumber \\
+    &+ size(behs\{mes_{\mathit{batAsk}}\}) \cdot 2.0 \nonumber \\
+    ask(argbehs) &= size(argbehs\{mes_{\mathit{preAsk}}\}) \nonumber
+\end{align}
+
+\subsubsection{協調性}
+協調性が高い人は他者に配慮する能力が非常に高い．
+そのため，相手の行動に対し敏感であると考えられる．
+よって，行動に対する感受性を協調性の測定に用いる．
+また，自分の利益よりも他者の利益を優先するため，
+提案によって得られる効用の割合も測定に用いる．
+IAGOにはFAVOR\_REQUESTに対してお返しをするためのメッセージとしてFAVOR\_RETURNが用意されている．
+FAVOR\_RETURNが送信されるとエージェントはエージェントの効用だけが高くなるような提案を送信する．
+そのため，FAVOR\_RETURNが送信される回数が多いほど相手に配慮していると考えられるため，協調性が高いと考えられる．
+また，相手の提案を受諾することは調和的な行為である．
+そのため，受諾の回数も協調性に測定に使用する．
+協調性が高い人は相手と良い関係を築くことに長けている．
+そのような人は，ポジティブな行動回数が多いと考えられるため，ポジティブな感情，ポジティブなメッセージの送信数を測定に用いる．
+なお，IAGOには人間が送信可能なポジティブ感情として“Happy"と“Surprised"が用意されている．
+“Happy"の方が“Surprised"に比べて相手に対して肯定的であると考えられるため，“Surprised"に小さい重みをかける．
+
+これらを踏まえ，協調性は\tabref{tab:agreeableness}に示す要素によって測定を行う．
+
+\begin{table}[tb]
+    \centering
+    \caption{協調性の測定に用いる交渉の要素}
+    \begin{tabular}{l} \toprule
+        行動に対する感受性$senseBeh$ \\
+        提案により得られる効用の割合$utilRatio$  \\
+        FAVOR\_RETURN$behs\{mes_{\mathit{favRet}}\}$ \\
+        提案の受諾$behs\{accept\}$ \\ 
+        ポジティブな感情$behs\{emo_{pos}\}$ \\
+        ポジティブなメッセージ$behs\{mes_{pos}\}$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:agreeableness}
+\end{table}
+
+協調性は\equref{eq:agreeableness}で計算する．
+\begin{align}
+    agree &= \mathit{agreeOff} \cdot \nu_{\mathit{off}} + agreeBeh \cdot \nu_{beh} \label{eq:agreeableness} \\
+    \mathit{agreeOff} &= \frac{sense + utilRatio}{2} \nonumber \\
+    sense &= norm \left(senseBeh, \max \left(senseBeh, \xi_{max}^{sense}\right), \min \left(senseBeh, \xi_{min}^{sense}\right) \right) \nonumber \\
+    utilRatio &= norm \left(\epsilon, \max \left(\epsilon, \xi_{max}^{ratioA}\right), \min \left(\epsilon, \xi_{min}^{ratio}\right) \right) \nonumber \\
+    \epsilon &= 
+    \begin{cases*}
+        \frac{\epsilon_A}{\epsilon_A + \epsilon_H} & if $\epsilon_A + \epsilon_H \geqq \frac{0.022}{t}$  \\
+        0.02 & otherwise 
+    \end{cases*} \nonumber \\
+    \epsilon_A &= mean(U_A(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_A(bids^{rec})) \nonumber \\
+    \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber 
+\end{align}
+\begin{align}
+    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), 0.0 \right) + \mathit{favRet}\right) \nonumber \\
+    posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber \\
+    pos(argbehs) &= size(argbehs\{mes_{pos}\}) + size(argbehs\{accept\}) \nonumber \\
+    &+ size(argbehs\{emo_{Happy}\}) \nonumber + size(argbehs\{emo_{Surprised}\}) \cdot 0.5 \nonumber \\
+    \mathit{favRet} &= norm\left( \mathit{favRetNum}, \max \left( \mathit{favRetNum}, \xi_{max}^{\mathit{favRet}}\right), \xi_{min}^{\mathit{favRet}} \right) \nonumber \\
+    \mathit{favRetNum} &= size(behs\{mes_{\mathit{favRet}}\}) \nonumber
+\end{align}
+
+\subsubsection{誠実性}
+誠実性が高い人は他者に配慮する能力が非常に高い．
+そのため，相手の行動に対し敏感であると考えられる．
+よって，行動に対する感受性を協調性の測定に用いる．
+また，自分の利益よりも他者の利益を優先するため，
+提案によって得られる効用の割合も測定に用いる．
+IAGOにはFAVOR\_REQUESTに対してお返しをするためのメッセージとしてFAVOR\_RETURNが用意されている．
+FAVOR\_RETURNが送信されるとエージェントはエージェントの効用だけが高くなるような提案を送信する．
+そのため，FAVOR\_RETURNが送信される回数が多いほど相手に配慮していると考えられるため，協調性が高いと考えられる．
+また，相手の提案を受諾することは調和的な行為である．
+そのため，受諾の回数も協調性に測定に使用する．
+協調性が高い人は相手と良い関係を築くことに長けている．
+そのような人は，ポジティブな行動回数が多いと考えられるため，ポジティブな感情，ポジティブなメッセージの送信数を測定に用いる．
+なお，IAGOには人間が送信可能なポジティブ感情として“Happy"と“Surprised"が用意されている．
+“Happy"の方が“Surprised"に比べて相手に対して肯定的であると考えられるため，“Surprised"に小さい重みをかける．
+
+これらを踏まえ，誠実性は\tabref{tab:conscientiousness}に示す要素によって測定を行う．
+
+\begin{table}[tb]
+    \centering
+    \caption{誠実性の測定に用いる交渉の要素}
+    \begin{tabular}{l} \toprule
+        提案の効用の標準偏差$dev$ \\
+        $(bid_t)^{\mathrm{T}}[1]$の変化率$undefRatio$  \\
+        選好の公開$behs\{mes_{\mathit{preTel}}\}$ \\
+        BATNAの公開$behs\{mes_{\mathit{batTel}}\}$ \\
+        嘘$behs\{lie\}$ \\ 
+        $bid_1$の送信前の行動数$behs\{fast\}$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:conscientiousness}
+\end{table}
+
+誠実性は\equref{eq:conscientiousness}で計算する．
+\begin{align}
+    consci &= \mathit{agreeOff} \cdot \nu_{\mathit{off}} + agreeBeh \cdot \nu_{beh} \label{eq:conscientiousness} \\
+    \mathit{agreeOff} &= \frac{sense + utilRatio}{2} \nonumber \\
+    sense &= norm \left(senseBeh, \max \left(senseBeh, \xi_{max}^{sense}\right), \min \left(senseBeh, \xi_{min}^{sense}\right) \right) \nonumber \\
+    utilRatio &= norm \left(\epsilon, \max \left(\epsilon, \xi_{max}^{ratioA}\right), \min \left(\epsilon, \xi_{min}^{ratio}\right) \right) \nonumber \\
+    \epsilon &= 
+    \begin{cases*}
+        \frac{\epsilon_A}{\epsilon_A + \epsilon_H} & if $\epsilon_A + \epsilon_H \geqq \frac{0.022}{t}$  \\
+        0.02 & otherwise 
+    \end{cases*} \nonumber \\
+    \epsilon_A &= mean(U_A(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_A(bids^{rec})) \nonumber \\
+    \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber 
+\end{align}
+\begin{align}
+    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), 0.0 \right) + \mathit{favRet}\right) \nonumber \\
+    posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber \\
+    pos(argbehs) &= size(argbehs\{mes_{pos}\}) + size(argbehs\{accept\}) \nonumber \\
+    &+ size(argbehs\{emo_{Happy}\}) \nonumber + size(argbehs\{emo_{Surprised}\}) \cdot 0.5 \nonumber \\
+    \mathit{favRet} &= norm\left( \mathit{favRetNum}, \max \left( \mathit{favRetNum}, \xi_{max}^{\mathit{favRet}}\right), \xi_{min}^{\mathit{favRet}} \right) \nonumber \\
+    \mathit{favRetNum} &= size(behs\{mes_{\mathit{favRet}}\}) \nonumber
+\end{align}
 
 \include{end}
