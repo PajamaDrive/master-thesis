@@ -1,7 +1,69 @@
 \include{begin}
 
 \chapter{予備実験}
-\section{本文書について}
-本文書は，\texttt{thesis-format}のテンプレート用文書である．
+\chapref{chap:profiling}で述べたビッグファイブの測定に関して，各種パラメータの値を調節することを目的として人間の被験者に対して実験を行う．
+同時に，エージェントの目標効用に関するパラメータが適切であるかを評価する．
+予備実験の結果によってエージェントのパラメータ調節を行い，評価実験を実施する．
+
+\section{実験設定}
+被験者はIAGOを用いてエージェントと交渉を行う．
+予備実験では，ドメインとしてFavorGameSpec1を使用する．
+また，被験者に対して事前質問を行い被験者のビッグファイブを測定する．
+事前質問による値と交渉中に測定した値を比較することで人間のビッグファイブの値を測定できているか評価する．
+なお，事前質問には50項目の質問によってビッグファイブの値を測定するIPIP尺度を利用する．
+各項目は“まったく当てはまらない"から“よく当てはまる"までの5段階評価となっており，
+各項目の評価値によってビッグファイブの値を測定する．
+
+予備実験に用いるエージェントは，交渉中に測定したビッグファイブの値を使用せず，事前質問によるビッグファイブの値を目標効用の計算に用いる．
+すなわち，TKIの積極性，協調性の値は交渉中に計算するがビッグファイブの値を固定値として目標効用を計算する．
+これにより，目標効用のパラメータ設定が測定したビッグファイブの値に対して適切に行われているかを確認する．
+
+\section{パラメータの設定}
+予備実験ではTKIの協調性，積極性，ビッグファイブの各因子の計算の途中で用いるパラメータ$N$，$\psi$，$\nu$を\tabref{tab:other-param}，$\xi$を\tabref{tab:xi-param}に示す値に設定する．
+これらの値はあらかじめヒューリスティックに決定したものである．
+\begin{table}[tb]
+    \centering
+    \caption{$N$，$\psi$，$\nu$の値}
+    \begin{tabular}{lll} \toprule
+        \begin{tabular}{c}$bids$に関する\\パラメータ\end{tabular} & \begin{tabular}{c}$behs$に関する\\パラメータ\end{tabular} & \begin{tabular}{c}$\mathit{offs}$に関する\\パラメータ\end{tabular} \\ \midrule
+        $N_{bid} = 3$ & $N_{beh} = 10$ & $N_{\mathit{off}} = 5$ \\
+        $\psi_{bid}^{pre} = 0.1$ & $\psi_{beh}^{pre} = 0.5$ & $\psi_{\mathit{off}}^{pre} = 1.0$ \\
+        $\nu_{bid}^{lim} = 0.5$ & $\nu_{beh}^{lim} = 0.5$ & \\ \bottomrule
+    \end{tabular}
+    \label{tab:other-param}
+\end{table}
+
+\begin{table}[tb]
+    \centering
+    \caption{$\xi$の値}
+    \begin{tabular}{llll} \toprule
+        因子 & \begin{tabular}{c}最小値の計算に\\用いるパラメータ\end{tabular} & \begin{tabular}{c}最大値の計算に\\用いるパラメータ\end{tabular} & \begin{tabular}{c}その他の\\パラメータ\end{tabular} \\ \midrule
+        TKI & & & \\
+        協調性 & $\xi_{min}^{util} = 0.45$ & $\xi_{max}^{util} = 0.65$ \\
+        積極性 & $\xi_{min}^{dev} = 0.4$ & $\xi_{max}^{dev} = 0.8$ \\ \midrule
+        ビッグファイブ & & & \\
+        神経症傾向 & $\xi_{min}^{\mathit{offN}} = 0.1$ & $\xi_{max}^{\mathit{offN}} = 0.75$ & $\xi^{Nice} = 1.0$ \\
+        & $\xi_{min}^{\mathit{behN}} = 0.0$ & $\xi_{max}^{\mathit{behN}} = 7.5$ & $\xi^{Concession} = 1.0$ \\
+        外向性 & $\xi_{min}^{\mathit{offE}} = 0.1$ & $\xi_{max}^{\mathit{offE}} = 0.75$ & $\xi^{\mathit{Selfish}} = 1.0$ \\
+        & $\xi_{min}^{\mathit{freq}} = 10.0$ & $\xi_{max}^{\mathit{freq}} = 40.0$ & $\xi^{Fortunate} = 1.0$ \\
+        & $\xi_{min}^{\mathit{favReq}} = -1.0$ & $\xi_{max}^{\mathit{favReq}} = 1.0$ \\
+        経験への開放性 & $\xi_{min}^{\mathit{devO}} = 0.2$ & $\xi_{max}^{\mathit{devO}} = 0.675$ & $\xi^{batAsk} = 2.0$ \\
+        & $\xi_{min}^{\mathit{behO}} = 0.0$ & $\xi_{max}^{\mathit{behO}} = 7.5$ \\
+        協調性 & $\xi_{min}^{\mathit{sense}} = 0.5$ & $\xi_{max}^{\mathit{sense}} = 1.75$ \\ 
+        & $\xi_{min}^{\mathit{ratioA}} = 0.2$ & $\xi_{max}^{\mathit{ratioA}} = 0.7$ \\
+        & $\xi_{min}^{\mathit{behA}} = 0.0$ & $\xi_{max}^{\mathit{behA}} = 7.5$ \\
+        & $\xi_{min}^{\mathit{favRet}} = -1.0$ & $\xi_{max}^{\mathit{favRet}} = 1.0$ \\
+        誠実性 & $\xi_{min}^{\mathit{ratioC}} = 7.0$ & $\xi_{max}^{\mathit{ratioC}} = 1.0$ & $\xi^{batTel} = 2.0$ \\
+        & $\xi_{min}^{\mathit{behC}} = 0.0$ & $\xi_{max}^{\mathit{behC}} = 7.5$ \\
+        & $\xi_{min}^{\mathit{fastBeh}} = 0.0$ & $\xi_{max}^{\mathit{fastBeh}} = 10.0$ \\
+        & $\xi_{min}^{\mathit{lie}} = -1.0$ & $\xi_{max}^{\mathit{lie}} = 1.0$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:xi-param}
+\end{table}
+
+\clearpage
+
+\section{実験結果と考察}
+
 
 \include{end}

@@ -1,6 +1,7 @@
 \include{begin}
 
 \chapter{プロファイリングを用いた交渉戦略}
+\label{chap:profiling}
 相手の性格や特性を推定し，特性に応じて自分の行動を決定することは交渉を含めた日常生活でも頻繁に行われる．
 \chapref{chap:related}で述べたようにTKIは対立関係に置かれた際の人間の対応方法を分類したものであり，ビッグファイブは5つの因子の値によって人間の特性を表したものである．
 本稿では，TKIとビッグファイブを用いて相手の特性を推定し，相手の特性によって譲歩速度を変更するエージェントを提案する．
@@ -74,7 +75,7 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
 直近の$N_{\mathit{bid}}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$\psi_{\mathit{bid}}^{pre}(0 \leqq \psi_{\mathit{bid}}^{pre} \leqq 1)$を乗じて計算することで，
 過去の提案を参考にしつつ直近の提案を重視して特性の推定が可能になる．
 
-また，TKIにおける積極性，協調性やビッグファイブの各因子の値を$[-1, 1]$に正規化するために\equref{eq:normarize}のような関数を使用する．
+また，TKIにおける積極性，協調性やビッグファイブの各因子の値を$[-1.0, 1.0]$に正規化するために\equref{eq:normarize}のような関数を使用する．
 \begin{equation}
     norm(x, x_{max}, x_{min}) = \frac{x - x_{min}}{x_{max} - x_{min}} \cdot 2 - 1
     \label{eq:normarize}
@@ -137,7 +138,7 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
     \centering
     \caption{TKIのパラメータ}
     \begin{tabular}{llll} \toprule
-        モード & モードの座標 & $\alpha$ & $n$ \\ \midrule
+        モード & モードの座標 & $\alpha_{mode}$ & $n_{mode}$ \\ \midrule
         共存 & $P_{col} = (1, 1)$ & 0.95 & 20 \\
         順応 & $P_{acc} = (1, -1)$ & 0.95 & 10 \\
         競争 & $P_{com} = (-1, 1)$ & 0.01 & 20\\
@@ -150,8 +151,8 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
 ただし，$P_h$といずれかのモードの座標との距離が0である場合はそのモードのみ$invDist$の値を十分に大きい値に設定する．
 そして，$invDist$をこれらの総和$invDistSum$で割ることによって各モードまでの距離の逆数の比$ratio$を求める．
 各モードの$ratio$の値をそのモードに分類される確率とする．
-各モードに設定された$\alpha$，$n$の値に$ratio$の値を重みとして乗じた$\alpha$，$n$の重み付き和を計算する．
-ただし，$P_h$といずれかのモードの座標との距離が0である場合はそのモードに設定された$\alpha$，$n$の値をそのまま使用する．
+各モードに設定された$\alpha_{mode}$，$n_{mode}$の値に$ratio$の値を重みとして乗じた$\alpha_{TKI}$，$n_{TKI}$の重み付き和を計算する．
+ただし，$P_h$といずれかのモードの座標との距離が0である場合はそのモードに設定された$\alpha_{mode}$，$n_{mode}$の値をそのまま使用する．
 
 例として，$P_h = (0.3, -0.4)$だった場合を考える．
 各モードの$invDist$および$invDistSum$は以下のようになる．
@@ -171,8 +172,8 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
 \end{align}
 これにより，TKIによって計算されるエージェントのパラメータはそれぞれ\equref{eq:tki-alpha}，\equref{eq:tki-n}となる．
 \begin{align}
-    \alpha &= ratio_{col} \cdot 0.95 + ratio_{acc} \cdot 0.95 + ratio_{com} \cdot 0.01 + ratio_{avo} \cdot 0.01 \sim 0.560 \label{eq:tki-alpha} \\
-    n &= \lfloor ratio_{col} \cdot 20 + ratio_{acc} \cdot 10 + ratio_{com} \cdot 20 + ratio_{avo} \cdot 10 \rfloor \sim 13 \label{eq:tki-n}
+    \alpha_{TKI} &= ratio_{col} \cdot 0.95 + ratio_{acc} \cdot 0.95 + ratio_{com} \cdot 0.01 + ratio_{avo} \cdot 0.01 \sim 0.560 \label{eq:tki-alpha} \\
+    n_{TKI} &= \lfloor ratio_{col} \cdot 20 + ratio_{acc} \cdot 10 + ratio_{com} \cdot 20 + ratio_{avo} \cdot 10 \rfloor \sim 13 \label{eq:tki-n}
 \end{align}
 
 \subsection{ビッグファイブの推定}
@@ -227,10 +228,10 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
 交渉は提案の送信が主目的であり，人によっては提案以外の行動を行わない可能性がある．
 そのため，最初は提案に対する重みを大きめに設定し因子の測定を行い，提案以外の行動回数に応じて提案に対する重みを小さくしていく．
 相手の提案以外の行動の回数を$n_{beh}$とする．
-このとき，提案に対する重み$\nu_{\mathit{off}}$，提案以外の行動に対する重み$\nu_{beh}$はそれぞれ\equref{eq:offW}，\equref{eq:behW}で計算される．
+このとき，提案に対する重み$\nu_{\mathit{bid}}$，提案以外の行動に対する重み$\nu_{beh}$はそれぞれ\equref{eq:offW}，\equref{eq:behW}で計算される．
 \begin{align}
-    \nu_{\mathit{off}} &= \max \left( 0.5, 1.0 - \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:offW} \\
-    \nu_{beh} &= \min \left( 0.5, \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:behW} 
+    \nu_{\mathit{bid}} &= \max \left( \nu_{\mathit{bid}}^{lim}, 1.0 - \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:offW} \\
+    \nu_{beh} &= \min \left( \nu_{beh}^{lim}, \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:behW} 
 \end{align}
 
 \subsubsection{神経症傾向}
@@ -259,10 +260,10 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
 
 神経症傾向は\equref{eq:neuroticism}で計算する．
 \begin{align}
-    neuro &= \mathit{neuroOff} \cdot \nu_{\mathit{off}} + neuroBeh \cdot \nu_{beh} \label{eq:neuroticism} \\
+    neuro &= \mathit{neuroOff} \cdot \nu_{\mathit{bid}} + neuroBeh \cdot \nu_{beh} \label{eq:neuroticism} \\
     \mathit{neuroOff} &= norm\left(niceCon, \max \left( niceCon, \xi_{max}^{\mathit{offN}}\right) , \min \left(niceCon, \xi_{min}^{\mathit{offN}}\right) \right) \nonumber \\
-    niceCon &= \%_{Nice} + \%_{Concession} \nonumber \\
-    neuroBeh &= norm\left( negBeh, \max \left( negBeh, \xi_{max}^{\mathit{behN}}\right), 0.0 \right) \nonumber \\
+    niceCon &= \%_{Nice} \cdot \xi^{\mathit{Nice}} + \%_{Concession} \cdot \xi^{\mathit{Concession}} \nonumber \\
+    neuroBeh &= norm\left( negBeh, \max \left( negBeh, \xi_{max}^{\mathit{behN}}\right), \xi_{min}^{\mathit{behN}} \right) \nonumber \\
     negBeh &=  neg(behs^{pre}) \cdot \psi_{beh}^{pre} + neg(behs^{rec}) \nonumber \\
     neg(argbehs) &= size(argbehs\{mes_{neg}\}) + size(argbehs\{emo_{Angry}\}) \nonumber \\
     &+ size(argbehs\{emo_{Sad}\}) \cdot 0.5 \nonumber 
@@ -298,12 +299,12 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
 
 外向性は\equref{eq:extraversion}で計算する．
 \begin{align}
-    extra &= \mathit{extraOff} \cdot \nu_{\mathit{off}} + extraBeh \cdot \nu_{beh} \label{eq:extraversion} \\
+    extra &= \mathit{extraOff} \cdot \nu_{\mathit{bid}} + extraBeh \cdot \nu_{beh} \label{eq:extraversion} \\
     \mathit{extraOff} &= norm\left( \mathit{selfFort}, \max \left( \mathit{selfFort}, \xi_{max}^{\mathit{offE}}\right) , \min \left( \mathit{selfFort}, \xi_{min}^{\mathit{offE}}\right) \right) \nonumber \\
-    \mathit{selfFort} &= \%_{\mathit{Selfish}} + \%_{Fortunate} \nonumber \\
+    \mathit{selfFort} &= \%_{\mathit{Selfish}} \cdot \xi^{\mathit{Selfish}} + \%_{Fortunate} \cdot \xi^{\mathit{Fortunate}} \nonumber \\
     extraBeh &= \min \left( 1.0, -norm\left( \mathit{freq}, \max \left( \mathit{freq}, \xi_{max}^{\mathit{freq}}\right), \min\left( \mathit{freq}, \xi_{min}^{\mathit{freq}}\right) \right) + \mathit{favReq}\right) \nonumber \\
-    \mathit{freq} &= \frac{behTimings^{pre}_{size(behTimings^{pre})} - behTimings^{pre}_0)}{size(behTimings^{pre})} \cdot \psi_{\mathit{beh}}^{pre} \nonumber \\
-    &+ \frac{behTimings^{rec}_{size(behTimings^{rec})} - behTimings^{rec}_0)}{size(behTimings^{rec})} \nonumber \\
+    \mathit{freq} &= \frac{behTimings^{pre}_{size(behTimings^{pre})} - behTimings^{pre}_1}{size(behTimings^{pre})} \cdot \psi_{\mathit{beh}}^{pre} \nonumber \\
+    &+ \frac{behTimings^{rec}_{size(behTimings^{rec})} - behTimings^{rec}_1}{size(behTimings^{rec})} \nonumber \\
     \mathit{favReq} &= norm\left( \mathit{favReqNum}, \max \left( \mathit{favReqNum}, \xi_{max}^{\mathit{favReq}}\right), \xi_{min}^{\mathit{favReq}} \right) \nonumber \\
     \mathit{favReqNum} &= size(behs\{mes_{\mathit{favReq}}\}) \nonumber
 \end{align}
@@ -334,7 +335,7 @@ PREF\_REQUESTもエージェントに対する質問に関するメッセージ�
 
 経験への開放性は\equref{eq:openness}で計算する．
 \begin{align}
-    open &= \mathit{openOff} \cdot \nu_{\mathit{off}} + openBeh \cdot \nu_{beh} \label{eq:openness} \\
+    open &= \mathit{openOff} \cdot \nu_{\mathit{bid}} + openBeh \cdot \nu_{beh} \label{eq:openness} \\
     \mathit{openOff} &= norm \left(\eta, \max \left(\eta, \eta_{dum} \cdot \xi_{max}^{devO}\right), \min \left(\eta, \eta_{dum} \cdot \xi_{min}^{devO}\right) \right) \nonumber \\
     \eta &= dev_{val}(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev_{val}(bids^{rec}) \nonumber \\
     dev_{val}(argbids) &= \frac{1}{\sqrt{size(argbids \cdot N}}\sum_{i = 1}^{size(argbids)} \sum_{j = 1}^{N} \left| argbids_i[j][2] - mean_{val}(argbids)[j] \right| \nonumber \\
@@ -346,9 +347,9 @@ PREF\_REQUESTもエージェントに対する質問に関するメッセージ�
         \frac{1}{0.5 \cdot \max (0.0, dev - 1.5) + 0.01 \cdot \max (0.01, dev)} \cdot 0.5 & if isNearZero \\
         \mathit{diffMaxMean} \cdot 25 \cdot N_{bid} \cdot N & otherwise 
     \end{cases*} \nonumber \\
-    openBeh &= norm\left( askBeh, \max \left( askBeh, \xi_{max}^{\mathit{behO}}\right), 0.0 \right) \nonumber \\
+    openBeh &= norm\left( askBeh, \max \left( askBeh, \xi_{max}^{\mathit{behO}}\right), \xi_{min}^{\mathit{behO}} \right) \nonumber \\
     askBeh &=  ask(behs^{pre}) \cdot \psi_{beh}^{pre} + ask(behs^{rec}) + size(behs\{mes_{\mathit{preReq}}\}) \nonumber \\
-    &+ size(behs\{mes_{\mathit{batAsk}}\}) \cdot 2.0 \nonumber \\
+    &+ size(behs\{mes_{\mathit{batAsk}}\}) \cdot \xi^{batAsk} \nonumber \\
     ask(argbehs) &= size(argbehs\{mes_{\mathit{preAsk}}\}) \nonumber
 \end{align}
 
@@ -370,7 +371,7 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 
 これらを踏まえ，協調性は\tabref{tab:agreeableness}に示す要素によって測定を行う．
 
-\begin{table}[tb]
+\begin{table}[b]
     \centering
     \caption{協調性の測定に用いる交渉の要素}
     \begin{tabular}{l} \toprule
@@ -386,20 +387,20 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 
 協調性は\equref{eq:agreeableness}で計算する．
 \begin{align}
-    agree &= \mathit{agreeOff} \cdot \nu_{\mathit{off}} + agreeBeh \cdot \nu_{beh} \label{eq:agreeableness} \\
+    agree &= \mathit{agreeOff} \cdot \nu_{\mathit{bid}} + agreeBeh \cdot \nu_{beh} \label{eq:agreeableness} \\
     \mathit{agreeOff} &= \frac{sense + utilRatio}{2} \nonumber \\
     sense &= norm \left(senseBeh, \max \left(senseBeh, \xi_{max}^{sense}\right), \min \left(senseBeh, \xi_{min}^{sense}\right) \right) \nonumber \\
-    utilRatio &= norm \left(\epsilon, \max \left(\epsilon, \xi_{max}^{ratioA}\right), \min \left(\epsilon, \xi_{min}^{ratio}\right) \right) \nonumber \\
+    utilRatio &= norm \left(\epsilon, \max \left(\epsilon, \xi_{max}^{ratioA}\right), \min \left(\epsilon, \xi_{min}^{ratioA}\right) \right) \nonumber \\
     \epsilon &= 
     \begin{cases*}
-        \frac{\epsilon_A}{\epsilon_A + \epsilon_H} & if $\epsilon_A + \epsilon_H \geqq \frac{0.022}{t}$  \\
+        \frac{\epsilon_A}{\epsilon_A + \epsilon_H} & if $\epsilon_A + \epsilon_H \geqq \frac{0.022}{size(bids)}$  \\
         0.02 & otherwise 
     \end{cases*} \nonumber \\
     \epsilon_A &= mean(U_A(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_A(bids^{rec})) \nonumber \\
     \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber 
 \end{align}
 \begin{align}
-    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), 0.0 \right) + \mathit{favRet}\right) \nonumber \\
+    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), \xi_{min}^{\mathit{behA}} \right) + \mathit{favRet}\right) \nonumber \\
     posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber \\
     pos(argbehs) &= size(argbehs\{mes_{pos}\}) + size(argbehs\{accept\}) \nonumber \\
     &+ size(argbehs\{emo_{Happy}\}) \nonumber + size(argbehs\{emo_{Surprised}\}) \cdot 0.5 \nonumber \\
@@ -408,28 +409,24 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 \end{align}
 
 \subsubsection{誠実性}
-誠実性が高い人は他者に配慮する能力が非常に高い．
-そのため，相手の行動に対し敏感であると考えられる．
-よって，行動に対する感受性を協調性の測定に用いる．
-また，自分の利益よりも他者の利益を優先するため，
-提案によって得られる効用の割合も測定に用いる．
-IAGOにはFAVOR\_REQUESTに対してお返しをするためのメッセージとしてFAVOR\_RETURNが用意されている．
-FAVOR\_RETURNが送信されるとエージェントはエージェントの効用だけが高くなるような提案を送信する．
-そのため，FAVOR\_RETURNが送信される回数が多いほど相手に配慮していると考えられるため，協調性が高いと考えられる．
-また，相手の提案を受諾することは調和的な行為である．
-そのため，受諾の回数も協調性に測定に使用する．
-協調性が高い人は相手と良い関係を築くことに長けている．
-そのような人は，ポジティブな行動回数が多いと考えられるため，ポジティブな感情，ポジティブなメッセージの送信数を測定に用いる．
-なお，IAGOには人間が送信可能なポジティブ感情として“Happy"と“Surprised"が用意されている．
-“Happy"の方が“Surprised"に比べて相手に対して肯定的であると考えられるため，“Surprised"に小さい重みをかける．
+誠実性が高い人は物事を順序立てて行う能力が非常に高い．
+そのため，少しずつ効用が高くなるように提案を行ってくると推測される．
+したがって効用の標準偏差が小さいほど誠実性が高いと考えられる．
+同様の理由で，誠実性の高さと$(bid_t)^{\mathrm{T}}[1]$の変化率の大きさは反比例すると考えられる．
+また，真面目であるため，相手に自分の情報を開示する回数が高いと考えられる．
+よって，選好やBATNAについてエージェントに公開した回数を測定に使用する．
+IAGOではエージェントに対して選好やBATNAについて嘘をつくことが可能である．
+嘘をつくことは誠実性の高さと反比例すると考えられるため，測定に使用する．
+また，お互いの情報を十分に集めてから提案を行うと考えられる．
+そのため，$bid_1$の送信前の行動数で誠実性の測定を行う．
 
 これらを踏まえ，誠実性は\tabref{tab:conscientiousness}に示す要素によって測定を行う．
 
-\begin{table}[tb]
+\begin{table}[b]
     \centering
     \caption{誠実性の測定に用いる交渉の要素}
     \begin{tabular}{l} \toprule
-        提案の効用の標準偏差$dev$ \\
+        提案の効用の標準偏差$\sigma$ \\
         $(bid_t)^{\mathrm{T}}[1]$の変化率$undefRatio$  \\
         選好の公開$behs\{mes_{\mathit{preTel}}\}$ \\
         BATNAの公開$behs\{mes_{\mathit{batTel}}\}$ \\
@@ -440,26 +437,61 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 \end{table}
 
 誠実性は\equref{eq:conscientiousness}で計算する．
+なお，$\sigma$はTKIの積極性の測定で使用したものと同じものを利用する．
 \begin{align}
-    consci &= \mathit{agreeOff} \cdot \nu_{\mathit{off}} + agreeBeh \cdot \nu_{beh} \label{eq:conscientiousness} \\
-    \mathit{agreeOff} &= \frac{sense + utilRatio}{2} \nonumber \\
-    sense &= norm \left(senseBeh, \max \left(senseBeh, \xi_{max}^{sense}\right), \min \left(senseBeh, \xi_{min}^{sense}\right) \right) \nonumber \\
-    utilRatio &= norm \left(\epsilon, \max \left(\epsilon, \xi_{max}^{ratioA}\right), \min \left(\epsilon, \xi_{min}^{ratio}\right) \right) \nonumber \\
-    \epsilon &= 
-    \begin{cases*}
-        \frac{\epsilon_A}{\epsilon_A + \epsilon_H} & if $\epsilon_A + \epsilon_H \geqq \frac{0.022}{t}$  \\
-        0.02 & otherwise 
-    \end{cases*} \nonumber \\
-    \epsilon_A &= mean(U_A(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_A(bids^{rec})) \nonumber \\
-    \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber 
-\end{align}
-\begin{align}
-    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), 0.0 \right) + \mathit{favRet}\right) \nonumber \\
-    posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber \\
-    pos(argbehs) &= size(argbehs\{mes_{pos}\}) + size(argbehs\{accept\}) \nonumber \\
-    &+ size(argbehs\{emo_{Happy}\}) \nonumber + size(argbehs\{emo_{Surprised}\}) \cdot 0.5 \nonumber \\
-    \mathit{favRet} &= norm\left( \mathit{favRetNum}, \max \left( \mathit{favRetNum}, \xi_{max}^{\mathit{favRet}}\right), \xi_{min}^{\mathit{favRet}} \right) \nonumber \\
-    \mathit{favRetNum} &= size(behs\{mes_{\mathit{favRet}}\}) \nonumber
+    consci &= \mathit{consciOff} \cdot \nu_{\mathit{bid}} + consciBeh \cdot \nu_{beh} \label{eq:conscientiousness} \\
+    \mathit{consciOff} &= \frac{-\sigma + \mathit{undefRatio}}{2} \nonumber \\
+    \mathit{undefRatio} &= -norm \left(\zeta, \max \left(\zeta, \xi_{max}^{ratioC} \right), \min \left(\zeta, \xi_{min}^{ratioC}\right) \right) \nonumber \\
+    \zeta &= \frac{\left| \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{pre}_{size(bids^{pre})}\right) \right) - \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{pre}_1\right) \right) \right|}{size(bids^{pre})} \cdot \psi_{\mathit{bid}}^{pre} \nonumber \\
+    &+ \frac{\left|\left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{rec}_{size(bids^{rec})}\right) \right) - \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{rec}_1\right) \right) \right|}{size(bids^{rec})} \nonumber \\
+    \mathit{undef_{max}} &= \sum_{i=1}^N v_{in_i} \nonumber \\
+    consciBeh &= \max \left( -1.0, \frac{norm\left( \mathit{telBeh}, \max \left( \mathit{telBeh}, \xi_{max}^{\mathit{behC}}\right), \xi_{min}^{\mathit{behC}} \right) + \mathit{fastBeh}}{2} + \mathit{lie}\right) \nonumber \\
+    telBeh &=  tel(behs^{pre}) \cdot \psi_{beh}^{pre} + tel(behs^{rec}) + size(behs\{mes_{\mathit{batTel}}\}) \cdot \xi^{batTel} \nonumber \\
+    tel(argbehs) &= size(argbehs\{mes_{\mathit{preTel}}\}) \nonumber \\
+    \mathit{fastBeh} &= norm\left( \mathit{fastBehNum}, \max \left( \mathit{fastBehNum}, \xi_{max}^{\mathit{fastBeh}}\right), \xi_{min}^{\mathit{fastBeh}} \right) \nonumber \\
+    \mathit{fastBehNum} &= size \left( behs_{\{x | behTimings_x \leqq behTimings_{bid_1}, 1 \leqq x \leqq t + \tau \}} \right) \nonumber \\
+    \mathit{lie} &= -norm\left( \mathit{lieNum}, \max \left( \mathit{lieNum}, \xi_{max}^{\mathit{lie}}\right), \xi_{min}^{\mathit{lie}} \right) \nonumber \\
+    \mathit{lieNum} &= size(behs\{mes_{\mathit{lie}}\}) \nonumber
 \end{align}
 
+\subsubsection{ビッグファイブによる目標効用の変更}
+測定したビッグファイブの値によって目標効用のパラメータを変化させる．
+各因子は$[-1.0,1.0]$の値をとり，各因子が最小値，最大値だったときのパラメータを設定しておく．
+実際に測定したビッグファイブの各因子の値に応じて，各因子に設定された最小値，最大値を混合し各パラメータの値を計算する．
+各因子で変化させるパラメータを\tabref{tab:big5-param}に示す．
+
+例として，神経症傾向が0.2，外向性が0.6，経験への開放性が-1.0，協調性が1.0，誠実性が-0.5である場合を考える．
+このとき，各パラメータは以下のように計算される．
+
+\begin{table}[tb]
+    \centering
+    \caption{ビッグファイブで変更するパラメータ}
+    \begin{tabular}{lcrr} \toprule
+        因子 & パラメータ & \begin{tabular}{c}因子が最小値のときの\\パラメータの値\end{tabular} & \begin{tabular}{c}因子が最大値のときの\\パラメータの値\end{tabular} \\ \midrule
+        神経症傾向 & $u_{bias}$ & -0.1 & 0.1 \\
+        外向性 & $n_big5{}$ & 10 & 20 \\
+        経験への開放性 & $\gamma_{min}$ & 0.2 & 0.4 \\
+        協調性 & $\alpha_{big5}$ & 0.01 & 0.95 \\ 
+        誠実性 & $\lambda_{bias}$ & 0.8 & 1.2 \\ \bottomrule
+    \end{tabular}
+    \label{tab:big5-param}
+\end{table}
+
+\begin{align}
+    u_{bias} &= 0.1 \cdot \frac{neuro + 1}{2} + (-0.1) \cdot \left(1 -\frac{neuro + 1}{2} \right) = 0.1 \cdot 0.6 + (-0.1) \cdot 0.4 = 0.06 \label{eq:big5-u} \\
+    n_{big5} &= \lfloor 20 \cdot \frac{extra + 1}{2} + 10 \cdot \left(1 -\frac{extra + 1}{2} \right) \rfloor = \lfloor 20 \cdot 0.8 + 10 \cdot 0.2 \rfloor = 18 \label{eq:big5-n} \\
+    \gamma_{min} &= 0.4 \cdot \frac{open + 1}{2} + 0.2 \cdot \left(1 -\frac{open + 1}{2} \right) = 0.4 \cdot 0 + 0.2 \cdot 1 = 0.2 \label{eq:big5-gamma} \\
+    \alpha_{big5} &= 0.95 \cdot \frac{agree + 1}{2} + 0.01 \cdot \left(1 -\frac{agree + 1}{2} \right) = 0.95 \cdot 1.0 + 0.01 \cdot 0 = 0.95 \label{eq:big5-alpha} \\
+    \lambda_{bias} &= 1.2 \cdot \frac{consci + 1}{2} + 0.8 \cdot \left(1 -\frac{consci + 1}{2} \right) = 1.2 \cdot 0.25 + 0.8 \cdot 0.75 = 0.9 \label{eq:big5-lambda}
+\end{align}
+
+また，$\alpha$，$n$に関してはTKIで計算した\equref{eq:tki-alpha}，\equref{eq:tki-n}の値を平均して用いる．
+すなわち，目標効用に用いる$\alpha$，$n$はそれぞれ\equref{eq:target-alpha}，\equref{eq:target-n}となる．
+\begin{align}
+    \alpha &= \frac{\alpha_{TKI} + \alpha_{big5}}{2} = \frac{0.560 + 0.95}{2} = 0.755 \label{eq:target-alpha} \\
+    n &= \lfloor \frac{n_{TKI} + n_{big5}}{2} \rfloor = \lfloor \frac{13 + 18}{2} \rfloor = 15 \label{eq:target-n}
+\end{align}
+
+エージェントは\equref{eq:big5-u}，\equref{eq:big5-lambda}，\equref{eq:big5-gamma}，\equref{eq:target-alpha}，\equref{eq:target-n}で
+計算したパラメータを使用し，目標効用$target(t,\alpha)$を計算する．
 \include{end}
