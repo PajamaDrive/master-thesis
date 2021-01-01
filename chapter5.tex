@@ -1,6 +1,6 @@
 \include{begin}
 
-\chapter{予備実験}
+\chapter{プロファイリング決定におけるパラメータ決定のための予備実験}
 \chapref{chap:profiling}で述べたビッグファイブの測定に関して，各種パラメータの値を調節することを目的として人間の被験者に対して実験を行う．
 同時に，エージェントの目標効用に関するパラメータが適切であるかを評価する．
 予備実験の結果によってエージェントのパラメータ調節を行い，評価実験を実施する．
@@ -8,11 +8,12 @@
 
 \section{実験設定}
 被験者はIAGOを用いてエージェントと交渉を行う．
+被験者はエージェントと交渉を行う前にチュートリアルを行い，あらかじめIAGOの操作に慣れてから実験を行った．
 予備実験では，ドメインとしてFavorGameSpec1を使用する．
 また，被験者に対して事前質問を行い被験者のビッグファイブを測定する．
 事前質問による値と交渉中に測定した値を比較することで人間のビッグファイブの値を測定できているか評価する．
 なお，事前質問には50項目の質問によってビッグファイブの値を測定するIPIP尺度を利用する．
-各項目は“まったく当てはまらない"から“よく当てはまる"までの5段階評価となっており，
+各項目は``まったく当てはまらない"から``よく当てはまる"までの5段階評価となっており，
 各項目の評価値によってビッグファイブの値を測定する．
 
 予備実験に用いるエージェントは，交渉中に測定したビッグファイブの値を使用せず，事前質問によるビッグファイブの値を目標効用の計算に用いる．
@@ -20,9 +21,9 @@
 これにより，目標効用のパラメータ設定が測定したビッグファイブの値に対して適切に行われているかを確認する．
 
 \section{パラメータの設定}
-予備実験ではTKIの協調性，積極性，ビッグファイブの各因子の計算の途中で用いるパラメータ$N$，$\psi$，$\nu$を\tabref{tab:other-param}，$\xi$を\tabref{tab:xi-param}に示す値に設定する．
+予備実験ではTKIの協調性，積極性，ビッグファイブの各因子の計算の途中で用いるパラメータ$N$，$\psi$，$\nu$を\tabref{tab:pre_other-param}，$\xi$を\tabref{tab:pre_xi-param}に示す値に設定する．
 これらの値はあらかじめヒューリスティックに決定したものである．
-\begin{table}[tb]
+\begin{table}[!tb]
     \centering
     \caption{$N$，$\psi$，$\nu$の値}
     \begin{tabular}{lll} \toprule
@@ -31,10 +32,10 @@
         $\psi_{bid}^{pre} = 0.1$ & $\psi_{beh}^{pre} = 0.5$ & $\psi_{\mathit{off}}^{pre} = 1.0$ \\
         $\nu_{bid}^{lim} = 0.5$ & $\nu_{beh}^{lim} = 0.5$ & \\ \bottomrule
     \end{tabular}
-    \label{tab:other-param}
+    \label{tab:pre_other-param}
 \end{table}
 
-\begin{table}[tb]
+\begin{table}[!tb]
     \centering
     \caption{$\xi$の値}
     \begin{tabular}{llll} \toprule
@@ -54,35 +55,35 @@
         & $\xi_{min}^{\mathit{ratioA}} = 0.2$ & $\xi_{max}^{\mathit{ratioA}} = 0.7$ \\
         & $\xi_{min}^{\mathit{behA}} = 0.0$ & $\xi_{max}^{\mathit{behA}} = 7.5$ \\
         & $\xi_{min}^{\mathit{favRet}} = -1.0$ & $\xi_{max}^{\mathit{favRet}} = 1.0$ \\
-        誠実性 & $\xi_{min}^{\mathit{ratioC}} = 7.0$ & $\xi_{max}^{\mathit{ratioC}} = 1.0$ & $\xi^{batTel} = 2.0$ \\
+        誠実性 & $\xi_{min}^{\mathit{ratioC}} = 1.0$ & $\xi_{max}^{\mathit{ratioC}} = 7.0$ & $\xi^{batTel} = 2.0$ \\
         & $\xi_{min}^{\mathit{behC}} = 0.0$ & $\xi_{max}^{\mathit{behC}} = 7.5$ \\
         & $\xi_{min}^{\mathit{fastBeh}} = 0.0$ & $\xi_{max}^{\mathit{fastBeh}} = 10.0$ \\
         & $\xi_{min}^{\mathit{lie}} = -1.0$ & $\xi_{max}^{\mathit{lie}} = 1.0$ \\ \bottomrule
     \end{tabular}
-    \label{tab:xi-param}
+    \label{tab:pre_xi-param}
 \end{table}
 
-\clearpage
-
 \section{実験結果と考察}
+\subsection{交渉結果}
 エージェントと人間の効用の平均を\figref{fig:pre_util}に示す．
-なお，図中のエラーバーは95\%信頼区間である．
+なお，黒の破線は効用値0.7を表しており，図中のエラーバーは95\%信頼区間である．
 
 \begin{figure}[bt]
     \centering
-    \includegraphics[width=13truecm]{../image/pre_utility.eps}
+    \includegraphics[width=9truecm]{../image/pre_utility.eps}
     \caption{エージェントと人間の個人効用}
     \label{fig:pre_util}
 \end{figure}
 
-\figref{fig:pre_util}のように，エージェントの獲得効用の平均は人間の獲得効用の平均より高い値となっている．
+\figref{fig:pre_util}のように，エージェントの効用の平均は人間の効用の平均より高い値となっている．
 また，いずれの被験者に対してもエージェントは0.7以上の高い効用を獲得することができた．
 そのため，目標効用のパラメータ設定は妥当であると考えられる．
 また，$\alpha = 0.05$として対応のある$t$検定を行った結果，$p \leqq 0.05$であり，有意差はなかった．
-この実験はサンプル数が3と非常に少なかったため，有意差が出なかったと考えられる．
+この実験はサンプル数が3と非常に少なかったことが要因として考えられる．
 
+\subsection{被験者のビッグファイブの推定}
 被験者のビッグファイブの値を\figref{fig:pre_big5}に示す．
-赤のチャートは事前質問により測定した値，青のチャートは交渉中に計算した各因子の平均値，緑のチャートは交渉終了時に計算した各因子の値である．
+青のチャートは事前質問により測定した値，橙のチャートは交渉中に計算した各因子の平均値，緑のチャートは交渉終了時に計算した各因子の値である．
 
 \begin{figure}[bt]
     \begin{minipage}[b]{0.47\linewidth}
@@ -105,7 +106,7 @@
     \caption{被験者のビッグファイブの値}\label{fig:pre_big5}
 \end{figure}
 
-いずれの被験者も交渉中に計算した神経症傾向の値が事前質問の値よりも非常に低くなった．
+\figref{fig:pre_big5}より，いずれの被験者も交渉中に計算した神経症傾向の値が事前質問の値よりも非常に低くなった．
 神経症傾向はネガティブな情動を引き起こすが，その情動は内側，すなわち自己に向きやすい．
 また，ネガティブな行動というのは一般的に好ましくない．
 したがって，ネガティブな行動は自らがマイナスであるという印象を交渉相手に与え，それが交渉結果にも影響する可能性がある．

@@ -1,6 +1,6 @@
 \include{begin}
 
-\chapter{プロファイリングを用いた交渉戦略}
+\chapter{プロファイリングを用いたエージェントの交渉戦略}
 \label{chap:profiling}
 相手の性格や特性を推定し，特性に応じて自分の行動を決定することは交渉を含めた日常生活でも頻繁に行われる．
 \chapref{chap:related}で述べたようにTKIは対立関係に置かれた際の人間の対応方法を分類したものであり，ビッグファイブは5つの因子の値によって人間の特性を表したものである．
@@ -13,10 +13,12 @@
     \caption{プロファイリングを用いた戦略の概要}
     \label{fig:trait_estimate}
 \end{figure}
+
+本稿て提案するエージェントの概要を\figref{fig:trait_estimate}に示す．
 エージェントは相手の提案や送信された感情，メッセージなどからTKIにおける協調性，積極性とビッグファイブの各因子の値を推定し，
 TKIについては各モードに分類される確率をそれぞれ求める．
 また，過去の提案や行動より現在の提案や行動に大きい重みをかけて平均などを計算することによってより柔軟な対応を実現する．
-推定した相手の各モードの分類確率および特性によってエージェントの譲歩速度を変更する．
+エージェントは推定した相手の各モードの分類確率およびビッグファイブの各因子の値によって譲歩速度を変更する．
 これにより，相手の特性に合わせた提案を行うことが可能となる．
 
 エージェントは$bid_t$の効用，選択肢からモードや因子の値を推定する際，および目標効用を計算する際に，
@@ -31,7 +33,7 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \begin{array}{rrr}
         0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
     \end{array}
-    \right) & if k = $\displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ \\
+    \right) & if $k = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ \\
         bid_t[k] & otherwise
     \end{cases*}
     \label{eq:dummyutil} \\
@@ -63,11 +65,49 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \Gamma(t,\alpha) &= \max \left( 0.0, 1 - \max \left( 0.0, u_{bias} + \lambda_{bias} \cdot \frac{U_A(bid_{t - 1})}{U_A(bid_{max_t})} \right) \cdot \left( \frac{t}{n} \right)^{\frac{1}{\alpha}} \right) \label{eq:newgamma}
 \end{align}
 
+なお，実際に相手に送信する提案は\algref{alg:bidding}にしたがって決定される．なお，すでに受諾したまたは相手に受諾された提案を$bid_{accept}$とする．
+相手に送信する提案は目標効用にかかわらず常に\algref{alg:bidding}によって作成される．そのため，常に$target(t,\alpha) > U_A(propose)$であるが
+$target(t,\alpha) = U_A(propose)$は成り立つとは限らない．
+\begin{algorithm}
+    \caption{送信する提案$propose$を決定するアルゴリズム}\label{alg:bidding}
+    \begin{algorithmic}[1]
+        \renewcommand{\algorithmicrequire}{\textbf{Input:}}
+        \renewcommand{\algorithmicensure}{\textbf{Output:}}
+        \REQUIRE $bid_t,bid_{accept}, J_H, J_A$
+        \ENSURE  $propose$
+        \STATE $propose \leftarrow bid_{accept}$
+        \STATE $temp \leftarrow bid_{accept}$
+        \STATE $free \leftarrow (bid_{accept})^{\mathrm{T}}[1]$
+        \STATE $count \leftarrow 0$
+        \WHILE{$target(t,\alpha) > U_A(propose) \wedge \sum_{k = 1}^{N} propose[k][1] \neq 0$}
+            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ 
+            \STATE $best_A = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_A[x]$ 
+            \IF{$count \bmod 3 = 1$}
+                \STATE $propose[best_H] \leftarrow [temp[best_H][0], free[best_H] - 1, temp[best_H][2] + 1]$
+                \STATE $free[best_H] \leftarrow free[best_H] - 1$
+                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, free[best_A] - 1, temp[best_A][2]]$
+                \STATE $free[best_A] \leftarrow free[best_A] - 1$
+            \ELSE
+                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, free[best_A] - 1, temp[best_A][2]]$
+                \STATE $free[best_A] \leftarrow free[best_A] - 1$
+            \ENDIF
+            \STATE $count \leftarrow count + 1$
+            \STATE $temp \leftarrow propose$
+        \ENDWHILE
+        \WHILE{$\sum_{k = 1}^{N} propose[k][1] \neq 0 \wedge \sum_{k = 1}^{N} propose[k][1] \geqq \sum_{k = 1}^{N} bid_t[k][1]$}
+            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ 
+            \STATE $propose[best_H] \leftarrow [temp[best_H][0], free[best_H] - 1, temp[best_H][2] + 1]$
+            \STATE $free[best_H] \leftarrow free[best_H] - 1$
+            \STATE $temp \leftarrow propose$
+        \ENDWHILE
+    \end{algorithmic}
+\end{algorithm}
+
 本稿では，相手の提案を受諾する際の戦略はIAGOのデフォルトエージェントで用いられているものを使用する．
 すなわち，\equref{eq:acceptance}が真になるような提案がなされたとき，その提案を受諾する．
-なお，すでに受諾したまたは相手に受諾された提案を$bid_{accept}$とし，$margin$は$0 \leqq margin \leqq 0.08$であり，エージェントが相手の提案を拒否するごとに0.02ずつ加算されていく．
+なお，$margin$は$0 \leqq margin \leqq 0.08$であり，エージェントが相手の提案を拒否するごとに0.02ずつ加算されていく．
 \begin{equation}
-    U_A(bid_t) > U_A(bid_{accept}) \vee  U_A(bid_t) - U_A(bid_{accept}) + margin > U_H(bid_t) - U_H(bid_{accept}) 
+    U_A(bid_t) > U_A(bid_{accept}) \wedge U_A(bid_t) - U_A(bid_{accept}) + margin > U_H(bid_t) - U_H(bid_{accept}) 
     \label{eq:acceptance}
 \end{equation}
 
@@ -100,13 +140,13 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 積極性は\equref{eq:assertiveness}で計算する．
 \begin{align}
     assert &= -norm \left(\sigma, \max \left(\sigma, \sigma_{dum} \cdot \xi_{max}^{dev}\right), \min \left(\sigma, \sigma_{dum} \cdot \xi_{min}^{dev}\right) \right) \label{eq:assertiveness} \\
-    \sigma &= dev(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev(bids^{rec}) \nonumber \\
+    \sigma &= dev(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev(bids^{rec}) \nonumber 
+\end{align}
+\begin{align}
     dev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} |U_H(argbids_i) - mean(U_H(argbids))| \nonumber \\
     \sigma_{dum} &= dev(bids_{dumU}^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
     dumDev(argbids) &= tempDev(argbids) + devBias(mean(U_H(argbids)), tempDev(argbids)) \nonumber \\
-    tempDev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} dumV(argbids_i, mean(U_H(argbids))) \nonumber 
-\end{align}
-\begin{align}
+    tempDev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} dumV(argbids_i, mean(U_H(argbids))) \nonumber \\
     devBias(m, dev) &= 
     \begin{cases*}
         \frac{1}{(1.1 - m) \cdot 50dev + 0.01} \cdot 0.01 & if isNearZero \\
@@ -241,10 +281,10 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
 よって，エージェントの利益を優先させる提案が行われたことを表すクラスである$Nice$と$Concesion$を測定に用いる．
 また，神経症傾向が高い人はストレスを感じやすい．
 したがって，ネガティブな行動が増えると考えられるため，ネガティブな感情，ネガティブなメッセージの送信数を測定に用いる．
-なお，IAGOには人間が送信可能なネガティブ感情として“Angry"と“Sad"が用意されている．
-“Angry"の方が“Sad"に比べて相手に対して否定的であると考えられるため，“Sad"に小さい重みをかける．
+なお，IAGOには人間が送信可能なネガティブ感情として``Angry"と``Sad"が用意されている．
+``Angry"の方が``Sad"に比べて相手に対して否定的であると考えられるため，``Sad"に小さい重みをかける．
 
-これらを踏まえ，本稿では神経症傾向は\tabref{tab:neuroticism}に示す要素によって測定を行う．
+これらをふまえ，本稿では神経症傾向は\tabref{tab:neuroticism}に示す要素によって測定を行う．
 
 \begin{table}[tb]
     \centering
@@ -280,7 +320,7 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
 また，外向性が高い人は社交的である．
 したがって，提案や行動の頻度が高いほど．外向性が高いと推測できる．
 
-これらを踏まえ，外向性は\tabref{tab:extraversion}に示す要素によって測定を行う．
+これらをふまえ，外向性は\tabref{tab:extraversion}に示す要素によって測定を行う．
 
 \begin{table}[tb]
     \centering
@@ -319,7 +359,7 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
 IAGOにはエージェントに対して選好をランダムで1つ送信するように依頼するためのメッセージとしてPREF\_REQUESTが用意されている．
 PREF\_REQUESTもエージェントに対する質問に関するメッセージなので経験への開放性の測定に用いる．
 
-これらを踏まえ，経験への開放性は\tabref{tab:openness}に示す要素によって測定を行う．
+これらをふまえ，経験への開放性は\tabref{tab:openness}に示す要素によって測定を行う．
 
 \begin{table}[tb]
     \centering
@@ -366,10 +406,10 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 そのため，受諾の回数も協調性に測定に使用する．
 協調性が高い人は相手と良い関係を築くことに長けている．
 そのような人は，ポジティブな行動回数が多いと考えられるため，ポジティブな感情，ポジティブなメッセージの送信数を測定に用いる．
-なお，IAGOには人間が送信可能なポジティブ感情として“Happy"と“Surprised"が用意されている．
-“Happy"の方が“Surprised"に比べて相手に対して肯定的であると考えられるため，“Surprised"に小さい重みをかける．
+なお，IAGOには人間が送信可能なポジティブ感情として``Happy"と``Surprised"が用意されている．
+``Happy"の方が``Surprised"に比べて相手に対して肯定的であると考えられるため，``Surprised"に小さい重みをかける．
 
-これらを踏まえ，協調性は\tabref{tab:agreeableness}に示す要素によって測定を行う．
+これらをふまえ，協調性は\tabref{tab:agreeableness}に示す要素によって測定を行う．
 
 \begin{table}[b]
     \centering
@@ -420,14 +460,14 @@ IAGOではエージェントに対して選好やBATNAについて嘘をつく�
 また，お互いの情報を十分に集めてから提案を行うと考えられる．
 そのため，$bid_1$の送信前の行動数で誠実性の測定を行う．
 
-これらを踏まえ，誠実性は\tabref{tab:conscientiousness}に示す要素によって測定を行う．
+これらをふまえ，誠実性は\tabref{tab:conscientiousness}に示す要素によって測定を行う．
 
 \begin{table}[b]
     \centering
     \caption{誠実性の測定に用いる交渉の要素}
     \begin{tabular}{l} \toprule
         提案の効用の標準偏差$\sigma$ \\
-        $(bid_t)^{\mathrm{T}}[1]$の変化率$undefRatio$  \\
+        $(bid_t)^{\mathrm{T}}[1]$の変化率$\mathit{undefRatio}$  \\
         選好の公開$behs\{mes_{\mathit{preTel}}\}$ \\
         BATNAの公開$behs\{mes_{\mathit{batTel}}\}$ \\
         嘘$behs\{lie\}$ \\ 

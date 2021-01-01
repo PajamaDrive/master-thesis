@@ -1,10 +1,256 @@
 \include{begin}
 
 \chapter{評価実験}
+\chapref{chap:profiling}で述べたビッグファイブを用いた提案手法に関して，有効性を確認することを目的として人間の被験者に対して実験を行う．
+同時に，交渉中に相手のビッグファイブの値を推測できるか確認する．
+なお，評価実験の被験者は6人であり，いずれも弊学の学生である．
+
 \section{実験設定}
+被験者はIAGOを用いてエージェントと交渉を行う．
+評価実験では，ドメインとしてFavorGameSpec1，FavorGameSpec2，FavorGameSpec3の3つを使用する．
+また，被験者に対して事前質問を行い被験者のビッグファイブを測定する．
+事前質問による値と交渉中に測定した値を比較することで人間のビッグファイブの値を測定できているか評価する．
+なお，事前質問には予備実験と同様のものを使用する．
+
+評価実験では3種類のエージェントを用いる．交渉中に測定したビッグファイブの値を目標効用の計算に用いる動的測定エージェント，
+交渉中に測定したビッグファイブの値を使用せず，事前質問によるビッグファイブの値を目標効用の計算に用いる静的測定エージェント．
+ビッグファイブを用いずKoleyらのTKIのみによって目標効用を計算する既存手法エージェントである．
+なお，動的測定，静的測定ではどちらもTKIの積極性，協調性の値は交渉中に計算する．
+被験者はエージェントと交渉を行う前にチュートリアルを行い，あらかじめIAGOの操作に慣れてから実験を行った．
+また，順序効果を低減するために\tabref{tab:exp-order}に示す3タイプの順序うち1つを各被験者に割り当てて実験を行う．
+これらのエージェントの交渉結果を比較することにより，ビッグファイブを用いたエージェントの有効性を確認する．
+
+\begin{table}[tb]
+    \centering
+    \caption{実験に用いるエージェントの順序}
+    \begin{tabular}{cllll} \toprule
+        交渉回数 & ドメイン & タイプ1 & タイプ2 & タイプ3 \\ \midrule
+        1 & FavorSpec1 & 動的測定 & 静的測定 & 既存手法 \\
+        2 & FavorSpec2 & 静的測定 & 既存手法 & 動的測定 \\
+        3 & FavorSpec3 & 既存手法 & 動的測定 & 静的測定 \\ \bottomrule
+    \end{tabular}
+    \label{tab:exp-order}
+\end{table}
 
 \section{パラメータの設定}
+予備実験の結果を考慮した各種パラメータの値を\tabref{tab:other-param}，$\xi$を\tabref{tab:xi-param}に示す．
+なお，太字は予備実験から変更した値である．
+
+\begin{table}[!tb]
+    \centering
+    \caption{$N$，$\psi$，$\nu$の値}
+    \begin{tabular}{lll} \toprule
+        \begin{tabular}{c}$bids$に関する\\パラメータ\end{tabular} & \begin{tabular}{c}$behs$に関する\\パラメータ\end{tabular} & \begin{tabular}{c}$\mathit{offs}$に関する\\パラメータ\end{tabular} \\ \midrule
+        $N_{bid} = 3$ & $\bm{N_{beh} = 7}$ & $N_{\mathit{off}} = 5$ \\
+        $\psi_{bid}^{pre} = 0.1$ & $\psi_{beh}^{pre} = 0.5$ & $\bm{\psi_{\mathit{off}}^{pre} = 0.5}$ \\
+        $\bm{\nu_{bid}^{lim} = 0.25}$ & $\bm{\nu_{beh}^{lim} = 0.75}$ & \\ \bottomrule
+    \end{tabular}
+    \label{tab:other-param}
+\end{table}
+
+\begin{table}[!tb]
+    \centering
+    \caption{$\xi$の値}
+    \begin{tabular}{llll} \toprule
+        因子 & \begin{tabular}{c}最小値の計算に\\用いるパラメータ\end{tabular} & \begin{tabular}{c}最大値の計算に\\用いるパラメータ\end{tabular} & \begin{tabular}{c}その他の\\パラメータ\end{tabular} \\ \midrule
+        TKI & & & \\
+        協調性 & $\xi_{min}^{util} = 0.45$ & $\xi_{max}^{util} = 0.65$ \\
+        積極性 & $\xi_{min}^{dev} = 0.4$ & $\xi_{max}^{dev} = 0.8$ \\ \midrule
+        ビッグファイブ & & & \\
+        神経症傾向 & $\bm{\xi_{min}^{\mathit{offN}} = 0.0}$ & $\bm{\xi_{max}^{\mathit{offN}} = 0.4}$ & $\bm{\xi^{Nice} = 0.8}$ \\
+        & $\xi_{min}^{\mathit{behN}} = 0.0$ & $\bm{\xi_{max}^{\mathit{behN}} = 5.0}$ & $\xi^{Concession} = 1.0$ \\
+        外向性 & $\bm{\xi_{min}^{\mathit{offE}} = 0.4}$ & $\bm{\xi_{max}^{\mathit{offE}} = 1.0}$ & $\xi^{\mathit{Selfish}} = 1.0$ \\
+        & $\xi_{min}^{\mathit{freq}} = 10.0$ & $\bm{\xi_{max}^{\mathit{freq}} = 35.0}$ & $\bm{\xi^{Fortunate} = 0.8}$ \\
+        & $\bm{\xi_{min}^{\mathit{favReq}} = -3.0}$ & $\bm{\xi_{max}^{\mathit{favReq}} = 3.0}$ \\
+        経験への開放性 & $\xi_{min}^{\mathit{devO}} = 0.2$ & $\xi_{max}^{\mathit{devO}} = 0.675$ & $\bm{\xi^{batAsk} = 1.5}$ \\
+        & $\xi_{min}^{\mathit{behO}} = 0.0$ & $\bm{\xi_{max}^{\mathit{behO}} = 5.0}$ \\
+        協調性 & $\xi_{min}^{\mathit{sense}} = 0.5$ & $\xi_{max}^{\mathit{sense}} = 1.75$ \\ 
+        & $\xi_{min}^{\mathit{ratioA}} = 0.2$ & $\xi_{max}^{\mathit{ratioA}} = 0.7$ \\
+        & $\xi_{min}^{\mathit{behA}} = 0.0$ & $\bm{\xi_{max}^{\mathit{behA}} = 7.0}$ \\
+        & $\bm{\xi_{min}^{\mathit{favRet}} = -2.0}$ & $\bm{\xi_{max}^{\mathit{favRet}} = 2.0}$ \\
+        誠実性 & $\xi_{min}^{\mathit{ratioC}} = 1.0$ & $\xi_{max}^{\mathit{ratioC}} = 7.0$ & $\bm{\xi^{batTel} = 1.5}$ \\
+        & $\xi_{min}^{\mathit{behC}} = 0.0$ & $\bm{\xi_{max}^{\mathit{behC}} = 7.0}$ \\
+        & $\xi_{min}^{\mathit{fastBeh}} = 0.0$ & $\bm{\xi_{max}^{\mathit{fastBeh}} = 7.0}$ \\
+        & $\xi_{min}^{\mathit{lie}} = -1.0$ & $\xi_{max}^{\mathit{lie}} = 1.0$ \\ \bottomrule
+    \end{tabular}
+    \label{tab:xi-param}
+\end{table}
 
 \section{実験結果と考察}
+\subsection{個人効用と社会的余剰}
+交渉時間内に合意に至ったセッションにおけるエージェントと人間の効用の平均と社会的余剰の平均をそれぞれ\figref{fig:util}，\figref{fig:socialsurplus}に示す．
+なお，\figref{fig:util}における黒の破線は効用値0.7，\figref{fig:socialsurplus}における黒の破線は効用値1.4を表しており，図中のエラーバーは95\%信頼区間である．
+
+\begin{figure}[bt]
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[height=7.5truecm]{../image/utility.eps}
+        \caption{エージェントと人間の個人効用の平均}\label{fig:util}
+    \end{minipage}
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[height=7.5truecm]{../image/socialsurplus.eps}
+        \caption{社会的余剰の平均}\label{fig:socialsurplus}
+    \end{minipage}
+\end{figure}
+
+\figref{fig:util}のように，全ての手法においてエージェントの効用の平均は人間の効用の平均より高い値となっている．
+また，動的測定よりも静的測定の方が効用の平均値が高かった．
+このことから，交渉中にビッグファイブの測定を正確に行うことができれば高い効用を獲得することができると考えられる．
+社会的余剰は\figref{fig:socialsurplus}のようにいずれの手法も社会的余剰の値が1.4付近であり，公平な合意案を探索できていたと考えられる．
+また，社会的余剰の値は動的測定，静的測定，既存手法の順で高かった．
+このことから，交渉中にビッグファイブの測定を行うことで相手の行動に合わせた提案を行うことができ，その結果公平な合意案に到達できたと考えられる．
+また，エージェントの効用，人間の効用，社会的余剰についてそれぞれ$\alpha = 0.05$として分散分析を行った結果，$p \leqq 0.05$であり，有意差はなかった．
+評価実験はサンプル数が6と少なかったことが要因として考えられる．
+
+\subsection{パレート最適性}
+また，各セッションにおけるエージェントと人間の効用をを2次元座標にプロットしたものを\figref{fig:scatter}に示す．
+なお，実線上の点はパレート最適な合意案，黒の破線が交差する点はKalai-Smorodinsky解を表しており，同じ合意案に到達している被験者数に比例して各点の色が濃くなっている．
+
+\begin{figure}[!bt]
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/scatterMentalist.eps}
+        \subcaption{動的測定}\label{fig:scatterMentalist}
+    \end{minipage}
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/scatterStaticMentalist.eps}
+        \subcaption{静的測定}\label{fig:scatterStaticMentalist}
+    \end{minipage}\\
+    \begin{center}
+        \begin{minipage}[b]{0.47\linewidth}
+            \centering
+            \includegraphics[width=7.5truecm]{../image/scatterPilotStudy.eps}
+            \subcaption{既存手法}\label{fig:scatterPilotStudy}
+        \end{minipage}
+    \end{center}
+    \caption{各セッションにおける人間とエージェントの効用}\label{fig:scatter}
+\end{figure}
+
+\figref{fig:scatter}のように，全ての手法において合意案のほとんどはパレート最適性を満たすような合意案であった．
+Kalai-Smorodinsky解に到達したセッション数は動的測定で3，静的測定と既存手法で2であった．
+また，既存手法のみ合意に到達できないセッションがあった．
+\equref{eq:efficient}の値は動的測定で約98.4\%，静的測定で約97.4\%，既存手法で約67.2\%であった．
+なお，合意に到達しなかった交渉結果を除いた場合の既存手法の\equref{eq:efficient}の値は約96.2\%であった．
+Koleyらの研究では\equref{eq:efficient}の値は約97.7\%であったため，動的測定のみKoleyらの結果よりも高い値となり，
+静的測定と既存手法はKoleyらの値を僅かに下回った．
+これらより動的測定を用いた場合の交渉結果は他の手法と比較して有効性が高いと考えられる．
+動的測定は交渉中の相手の行動などに応じて目標効用のパラメータを変更したため，相手の戦略に柔軟に対応することができ，
+その結果，パレート最適な合意案に到達することができたと考えられる．
+静的測定は交渉中に目標効用のパラメータを変更しないため，交渉中の相手の戦略に対応できなかったが，
+相手の特性に合わせた目標効用で交渉を行ったため，既存手法と動的測定の中庸の結果になったと考えられる．
+既存手法はビッグファイブを用いず，TKIの特定のモードと判断した時のみ目標効用を変更していた．
+そのため，相手の特性を的確に判断することができず，さらに特定のモード以外の戦略が考慮されていなかったため相手の戦略に合わせた
+目標効用を設定できず，パレート最適ではない合意案で妥協するあるいは交渉が合意に至らずに終了する場合があったと考えられる．
+
+\subsection{交渉時間}
+交渉開始から合意到達までに要した時間を\figref{fig:negotime}に示す．
+なお，黒の破線は交渉の終了時刻，赤色の破線はKoleyらの合意到達までの平均時間，
+青，橙，緑色の破線はそれぞれ動的測定，静的測定，既存手法の合意到達までの平均時間，
+明度が高い棒グラフは合意できずに交渉が終了したセッションである．
+
+\begin{figure}[bt]
+    \centering
+    \includegraphics[width=15truecm]{../image/negotime.eps}
+    \caption{合意到達までの所要時間}
+    \label{fig:negotime}
+\end{figure}
+
+合意到達までの所要時間の平均は動的測定で約384秒，静的測定で約348秒，既存手法で約350秒であった．
+Koleyらの研究では平均が約392秒であったので全ての手法において合意到達までの所要時間が短くなった．
+また，合意到達までのラウンド数の平均は動的測定と静的測定で約4.83，既存手法で約4.6となった．
+動的測定は相手の行動などから特性を推定する必要があるため，3つの手法の中で交渉時間が長くなったと考えられる
+静的測定は交渉中に特性を推定する必要がなく，交渉開始時から適切なパラメータを設定できるため3つの手法の中で一番交渉時間が短くなったと考えられる．
+既存手法は相手が協調的である場合にのみ目標効用を低下させる．そのため，協調的な相手に対してはエージェントも譲歩するため交渉が早期で終了する．
+一方で非協調的な相手に対しては全く譲歩しないため，交渉が平行線となり合意に至らない場合があると考えられる．
+
+\subsection{被験者のビッグファイブの推定}
+被験者のビッグファイブの値を\figref{fig:big5}に示す．
+青のチャートは事前質問により測定した値，橙のチャートは交渉中に計算した各因子の平均値，緑のチャートは交渉終了時に計算した各因子の値である．
+
+\begin{figure}[!bt]
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_1.eps}
+        \subcaption{被験者A}\label{fig:big5_sub1}
+    \end{minipage}
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_2.eps}
+        \subcaption{被験者B}\label{fig:big5_sub2}
+    \end{minipage}\\
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_3.eps}
+        \subcaption{被験者C}\label{fig:big5_sub3}
+    \end{minipage}
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_4.eps}
+        \subcaption{被験者D}\label{fig:big5_sub4}
+    \end{minipage}\\
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_5.eps}
+        \subcaption{被験者E}\label{fig:big5_sub5}
+    \end{minipage}
+    \begin{minipage}[b]{0.47\linewidth}
+        \centering
+        \includegraphics[width=7.5truecm]{../image/raderChart_6.eps}
+        \subcaption{被験者F}\label{fig:big5_sub6}
+    \end{minipage}\\
+    \caption{被験者のビッグファイブの値}\label{fig:big5}
+\end{figure}
+
+\figref{fig:big5}は\figref{fig:pre_big5}と比較すると神経症傾向と外向性の推定について精度が向上している．
+このことから，神経症傾向と外向性については予備実験によるパラメータ調整は概ね成功していると考えられる．
+一方で，協調性については予備実験と比較して推定精度が低下している．
+前述のように，予備実験の被験者はいずれも交渉について熟知していた．
+交渉において良い合意案を探索する際には譲歩することは重要な要素であり，
+そのことを十分理解していたため協調性が高く出たと考えられる．
+そのため，協調性に関しては偏ったパラメータ調整になってしまった可能性がある．
+また，経験への開放性と誠実性については推定制度はあまり変わらなかった．
+したがって，これら3つの因子については測定に用いる要素の見直し，および更なるパラメータ調整が必要であると考えられる．
+評価実験において特に推定精度が高かった被験者Aおよび被験者Dはどちらも\tabref{tab:exp-order}のタイプ2の順序で実験を行った．
+そのため，動的測定のエージェントは最後の交渉相手であった．
+したがって，被験者は交渉の流れやIAGOの操作に十分慣れた状態で動的測定のエージェントと交渉を行った．
+その結果，被験者はIAGOで行える各種行動を効果的に用いることができ，それらの行動から相手の特性を十分に推定することができたため，
+他の順序で行った場合より推定精度が高くなったと考えられる．
+
+\subsection{交渉終了後のアンケート結果}
+交渉終了直後に行ったアンケートの結果を\figref{fig:survey}に示す．
+\begin{figure}[!bt]
+    \begin{minipage}[b]{0.95\linewidth}
+        \centering
+        \includegraphics[width=15truecm]{../image/survey1.eps}
+        \subcaption{アンケートA}\label{fig:survey1}
+    \end{minipage}\\
+    \begin{center}
+        \begin{minipage}[b]{0.95\linewidth}
+            \centering
+            \includegraphics[width=15truecm]{../image/survey2.eps}
+            \subcaption{アンケートB}\label{fig:survey2}
+        \end{minipage}
+    \end{center}
+    \caption{交渉終了後のアンケート結果}\label{fig:survey}
+\end{figure}
+\figref{fig:survey1}より，動的測定は3つの手法の中で最も感じが良く，最も交渉結果に満足していると思われている．
+すなわち，相手に対して悪い印象をあまり与えずに相手の譲歩を引き出すことに成功している．
+また，エージェントが行った提案が最も現実的であるのが静的測定，次点で動的測定，最も非現実的であったのが既存手法という結果だった．
+これらより，既存手法のようなTKIのみによる提案戦略では相手の特性を捉えきれず，相手が受諾しないような提案をしてしまう可能性が高いと考えられる．
+これに対して，ビッグファイブを併用した提案戦略は相手の特性をより的確に捉えることができたため，受諾されうる現実的な提案を行うことができた．
+
+また，\figref{fig:survey2}より，静的測定が最も協調的で動的測定が最も非協調的であるという結果だった．
+動的測定は最も感じが良いエージェントであったにもかかわらず，非協調的と判断されたことがわかる．
+動的測定は交渉序盤は相手の特性を判断しきれていないため，相手に合わせて譲歩が行えず非協調的な提案を行う．
+しかし，交渉後半は相手の特性に合わせた提案を行うことができ，交渉後半の譲歩によって動的測定の印象が交渉前半と比較して良くなった．
+その結果，非協調的で感じが良いという相反するアンケート結果になったと考えられる．
+一方，静的測定は交渉序盤から相手の特性に合わせた譲歩が行える．
+そのため，全体を通して協調的に振る舞うことができたと考えられる．
+また，既存手法が最も信頼でき，長期的な関係を見据えた交渉を行っているという評価だった．
+動的測定や静的測定はパラメータの値によって交渉中に行う提案の内容が激しく変動する可能性がある．
+一方で既存手法は相手のモードが変動しない限り，譲歩しないため同じような提案を送信する傾向がある．
+一貫した行動は相手に対して信頼感や安心感を与えるため，既存手法の信頼性が最も高いと評価されたと考えられる．
 
 \include{end}
