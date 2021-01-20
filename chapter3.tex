@@ -14,35 +14,37 @@
   \label{eq:socialSurplus}
 \end{equation}
 
-一つの交渉問題はドメインと呼ばれ，論点数$N$のドメインはそれぞれ固有の論点集合$I = \{ i_1， i_2， \ldots， i_N \}$を持つ．
+一つの交渉問題はドメインと呼ばれ，論点数$N_{iss}$のドメインはそれぞれ固有の論点集合$I = \{ i_1， i_2， \ldots， i_{N_{iss}} \}$を持つ．
 また，論点$i_k \in I$は選択肢集合$V_k = \{ v_{k1}， v_{k2}， \ldots ，v_{kn_k} \}$を持つ．ただし，論点$i_k$の選択肢数を$n_k$と定義する．
 
 各論点$i_k \in I$についてそれぞれ選択肢$v_k \in V_k$を一つずつ選んだものを合意案候補(Bid)と呼び，
-$s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべての合意案候補集合$S$は\equref{eq:Bid}と表すことができる．
+$s = (v_1， v_2，\ldots， v_{N_{iss}})$ として表現される．また，すべての合意案候補集合$S$は\equref{eq:Bid}と表すことができる．
 \begin{equation}
-  S = \{ s = (v_1， v_2， \ldots， v_N) |  v_k \in V_k ， 1 \leqq k \leqq N \}
+  S = \{ s = (v_1， v_2， \ldots， v_{N_{iss}}) |  v_k \in V_k ， 1 \leqq k \leqq N_{iss} \}
   \label{eq:Bid}
 \end{equation}
 
-各エージェントは各論点$i_k$について重み$w_k$$(\sum_{k = 1}^N w_k = 1)$および選択肢の評価値$eval(v_k \in V_k)$を持つ．
+各エージェントは各論点$i_k$について重み$w_k$$(\sum_{k = 1}^{N_{iss}} w_k = 1)$および選択肢の評価値$eval(v_k \in V_k)$を持つ．
 ただし，$eval(v_k \in V_k)$は最大値が1となるように正規化されているものとする．このとき，エージェントの効用関数$U$は\equref{eq:Utility}となる．
 \begin{equation}
-  U(s) = \sum_{k = 1}^N w_k \cdot eval(v_k)
+  U(s) = \sum_{k = 1}^{N_{iss}} w_k \cdot eval(v_k)
   \label{eq:Utility}
 \end{equation}
 
 論点$i_k$の重み$w_k$が大きいほど$i_k$はエージェントにとって重要な論点である．
-論点$i_k$がそのエージェントにとって$j (1 \leqq j \leqq N)$番目に重要であるという情報$J = \left( \begin{array}{rrrr} j_1 & j_2 & \ldots & j_N \end{array}\right)$をエージェントの選好(Preference)と呼ぶ．
+論点$i_k$がそのエージェントにとって$j (1 \leqq j \leqq N_{iss})$番目に重要であるという情報$J = \left( \begin{array}{rrrr} j_1 & j_2 & \ldots & j_{N_{iss}} \end{array}\right)$をエージェントの選好(Preference)と呼ぶ．
 ただし，各エージェントが持つ各論点の重みと選択肢の評価値は他のエージェントには公開されずに交渉が行われる．
 そのため，各エージェントは相手の効用関数を推定して提案を行う．
 また，エージェントに対してBATNA(Best Alternative To Nagotiated Agrrement)として留保価格(reservation value)と呼ばれる値が設定される場合がある．
 留保価格は合意形成に失敗した際にエージェントが最低限獲得できる効用値である．
 
-\section{統合的交渉}
+\section{配分的交渉と統合的交渉}
+配分的交渉(Distributive bargaining)は，当事者間で固定量の資源を分割する交渉であり，
+統合的交渉(Integrative bargaining)は，相互問題解決技法を使用して，当事者間で分割される資産を拡大する交渉である．
+
 複数論点交渉問題の場合，各エージェントの選好$J_A$が同じ場合と異なる場合がある．
-選好が同じ場合は配分的交渉(Distributive bargaining)と呼ばれ，一方の利益は一方の損失につながるため，資源の奪い合いとなる．
-対して，選好が異なる場合は統合的交渉(Integrative bargaining)と呼ばれ，双方が重要でない論点で互いに譲歩することで双方の利益となる場合があり，
-資源を育ててから配分することができる．
+配分的交渉の場合は選好が同じであり，一方の利益は一方の損失につながるため，資源の奪い合いとなる．
+対して，統合的交渉では選好が異なり，双方が重要でない論点で互いに譲歩することで双方の利益となる場合がある．
 
 \section{本稿における問題設定}
 本稿の目的は交渉中に相手のパーソナリティの測定を試みることであるが，相手の選好が正しく推定できていないとパーソナリティの測定は困難である．
@@ -53,7 +55,7 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
 各ドメインはIAGOの最新版にデフォルトで存在するドメインを一部修正したもので，いずれも統合的交渉となっている．
 各ドメインの詳細を\tabref{tab:common-domain}，\tabref{tab:domain}に示す．なお，表中のAはエージェント，Hは人間を指している．
 
-\begin{table}[b]
+\begin{table}[!tb]
   \centering
   \caption{本稿で用いるドメインで共通の属性}
   \begin{tabular}{cccc} \toprule
@@ -63,7 +65,7 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
   \label{tab:common-domain}
 \end{table}
 
-\begin{table}[tb]
+\begin{table}[!tb]
   \centering
   \caption{本稿で用いるドメイン}
   \begin{tabular}{ccccccccc} \toprule
@@ -76,6 +78,17 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
   \label{tab:domain}
 \end{table}
 
+\begin{table}[!tb]
+  \centering
+  \caption{FavorGameSpec1における$bid_t$の例}
+  \begin{tabular}{cccccccc} \toprule
+      \multicolumn{2}{c}{論点1の選択肢} & \multicolumn{2}{c}{論点2の選択肢} & \multicolumn{2}{c}{論点3の選択肢} & \multicolumn{2}{c}{論点4の選択肢} \\
+      A & H & A & H & A & H & A & H \\ \midrule
+      2 & 1 & 4 & 0 & 3 & 2 & 0 & 0 \\ \bottomrule
+  \end{tabular}
+  \label{tab:bid_ex}
+\end{table}
+
 本稿で用いるドメインでは論点としてそれぞれ項目が設定されており，選択肢はその項目をいくつ配分するかによって決まる．
 選択肢数は6なので選択肢の値は0から5のいずれかとなり，各論点におけるエージェントと人間の選択肢の値を足した値は常に5以下となり，これに未配分の項目数を足すと常に5となる．
 例としてFavorGameSpec1において\tabref{tab:bid_ex}のような提案が行われたとする．
@@ -84,7 +97,7 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
 なお，選択肢の評価値は選択肢の値に0.2を乗じた値とする．
 上述の例では論点1に対するエージェントの選択肢の評価値は0.4，人間の選択肢の評価値は0.2となる．
 
-また，本稿で用いるドメインでは$bid_t$は$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
+また，本稿で用いるドメインでは$bid_t$は$N_{iss} \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
 1列目にはエージェントの選択肢$v_{kA}$，2列目には未配分の項目数，3列目には人間の選択肢$v_{kH}$が代入されている．
 \tabref{tab:bid_ex}では$bid_t$は\equref{eq:bid_ex}となる．
 \begin{equation}
@@ -99,21 +112,10 @@ $s = (v_1， v_2，\ldots， v_N)$ として表現される．また，すべて
     \label{eq:bid_ex}
 \end{equation}
 
-\begin{table}[tb]
-  \centering
-  \caption{FavorGameSpec1における$bid_t$の例}
-  \begin{tabular}{cccccccc} \toprule
-      \multicolumn{2}{c}{論点1の選択肢} & \multicolumn{2}{c}{論点2の選択肢} & \multicolumn{2}{c}{論点3の選択肢} & \multicolumn{2}{c}{論点4の選択肢} \\
-      A & H & A & H & A & H & A & H \\ \midrule
-      2 & 1 & 4 & 0 & 3 & 2 & 0 & 0 \\ \bottomrule
-  \end{tabular}
-  \label{tab:bid_ex}
-\end{table}
-
 また，各ドメインの合意案候補によってエージェントと人間が得られる効用を2次元座標にプロットしたものを\figref{fig:domain}に示す．
 なお，実線上にある点はパレート最適な合意案であり，赤い点はKalai-Smorodinsky解である．
 
-\begin{figure}[htb]
+\begin{figure}[tb]
   \centering
   \includegraphics[width=12truecm]{../image/domain.eps}
   \caption{本稿で用いるドメインにおける合意案候補とパレート最適解}

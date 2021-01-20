@@ -23,7 +23,7 @@ TKIについては各モードに分類される確率をそれぞれ求める�
 
 エージェントは$bid_t$の効用，選択肢からモードや因子の値を推定する際，および目標効用を計算する際に，
 ダミーの提案として$bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$を用いる．
-これらは$bid_t$と同様に$N \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
+これらは$bid_t$と同様に$N_{iss} \times 3$の行列であり，$k$行目には論点$k$についての選択肢数，
 1列目にはエージェントの選択肢$v_{kA}$，2列目には未配分の項目数，3列目には人間の選択肢$v_{kH}$が代入されている．
 $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyutil}，\equref{eq:dummyvalue}，\equref{eq:maxutil}で計算される．
 \begin{align}
@@ -33,7 +33,7 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \begin{array}{rrr}
         0 & 5 - v_{kH} - v_{kA} & v_{kH} + v_{kA}
     \end{array}
-    \right) & if $k = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ \\
+    \right) & if $k = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N_{iss} \} } J_H[x]$ \\
         bid_t[k] & otherwise
     \end{cases*}
     \label{eq:dummyutil} \\
@@ -65,39 +65,39 @@ $bid_{dumU_t}$，$bid_{dumV_t}$，$bid_{max_t}$はそれぞれ\equref{eq:dummyut
     \Gamma(t,\alpha) &= \max \left( 0.0, 1 - \max \left( 0.0, u_{bias} + \lambda_{bias} \cdot \frac{U_A(bid_{t - 1})}{U_A(bid_{max_t})} \right) \cdot \left( \frac{t}{n} \right)^{\frac{1}{\alpha}} \right) \label{eq:newgamma}
 \end{align}
 
-なお，実際に相手に送信する提案は\algref{alg:bidding}にしたがって決定される．なお，すでに受諾したまたは相手に受諾された提案を$bid_{accept}$とする．
-相手に送信する提案は目標効用にかかわらず常に\algref{alg:bidding}によって作成される．そのため，常に$target(t,\alpha) > U_A(propose)$であるが
+なお，実際に相手に送信する提案は\algref{alg:bidding}にしたがって決定される．なお，すでに受諾したまたは相手に受諾された提案を$bid_{acc}$とする．
+相手に送信する提案は目標効用にかかわらず常に\algref{alg:bidding}によって作成される．そのため，常に$target(t,\alpha) \geqq U_A(propose)$であるが
 $target(t,\alpha) = U_A(propose)$は成り立つとは限らない．
 \begin{algorithm}
     \caption{送信する提案$propose$を決定するアルゴリズム}\label{alg:bidding}
     \begin{algorithmic}[1]
         \renewcommand{\algorithmicrequire}{\textbf{Input:}}
         \renewcommand{\algorithmicensure}{\textbf{Output:}}
-        \REQUIRE $bid_t,bid_{accept}, J_H, J_A$
+        \REQUIRE $bid_t,bid_{acc}, J_H, J_A$
         \ENSURE  $propose$
-        \STATE $propose \leftarrow bid_{accept}$
-        \STATE $temp \leftarrow bid_{accept}$
-        \STATE $free \leftarrow (bid_{accept})^{\mathrm{T}}[1]$
+        \STATE $propose \leftarrow bid_{acc}$
+        \STATE $temp \leftarrow bid_{acc}$
+        \STATE $\mathit{free} \leftarrow (bid_{acc})^{\mathrm{T}}[1]$
         \STATE $count \leftarrow 0$
-        \WHILE{$target(t,\alpha) > U_A(propose) \wedge \sum_{k = 1}^{N} propose[k][1] \neq 0$}
-            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ 
-            \STATE $best_A = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_A[x]$ 
+        \WHILE{$target(t,\alpha) > U_A(propose) \wedge \sum_{k = 1}^{N_{iss}} propose[k][1] \neq 0$}
+            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N_{iss} \} } J_H[x]$ 
+            \STATE $best_A = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N_{iss} \} } J_A[x]$ 
             \IF{$count \bmod 3 = 1$}
-                \STATE $propose[best_H] \leftarrow [temp[best_H][0], free[best_H] - 1, temp[best_H][2] + 1]$
-                \STATE $free[best_H] \leftarrow free[best_H] - 1$
-                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, free[best_A] - 1, temp[best_A][2]]$
-                \STATE $free[best_A] \leftarrow free[best_A] - 1$
+                \STATE $propose[best_H] \leftarrow [temp[best_H][0], \mathit{free}[best_H] - 1, temp[best_H][2] + 1]$
+                \STATE $\mathit{free}[best_H] \leftarrow \mathit{free}[best_H] - 1$
+                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, \mathit{free}[best_A] - 1, temp[best_A][2]]$
+                \STATE $\mathit{free}[best_A] \leftarrow \mathit{free}[best_A] - 1$
             \ELSE
-                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, free[best_A] - 1, temp[best_A][2]]$
-                \STATE $free[best_A] \leftarrow free[best_A] - 1$
+                \STATE $propose[best_A] \leftarrow [temp[best_A][0] + 1, \mathit{free}[best_A] - 1, temp[best_A][2]]$
+                \STATE $\mathit{free}[best_A] \leftarrow \mathit{free}[best_A] - 1$
             \ENDIF
             \STATE $count \leftarrow count + 1$
             \STATE $temp \leftarrow propose$
         \ENDWHILE
-        \WHILE{$\sum_{k = 1}^{N} propose[k][1] \neq 0 \wedge \sum_{k = 1}^{N} propose[k][1] \geqq \sum_{k = 1}^{N} bid_t[k][1]$}
-            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N \} } J_H[x]$ 
-            \STATE $propose[best_H] \leftarrow [temp[best_H][0], free[best_H] - 1, temp[best_H][2] + 1]$
-            \STATE $free[best_H] \leftarrow free[best_H] - 1$
+        \WHILE{$\sum_{k = 1}^{N_{iss}} propose[k][1] \neq 0 \wedge \sum_{k = 1}^{N_{iss}} propose[k][1] \geqq \sum_{k = 1}^{N_{iss}} bid_t[k][1]$}
+            \STATE $best_H = \displaystyle \min_{\{x | v_{xH} + v_{xA} \neq 0, 1 \leqq x \leqq N_{iss} \} } J_H[x]$ 
+            \STATE $propose[best_H] \leftarrow [temp[best_H][0], \mathit{free}[best_H] - 1, temp[best_H][2] + 1]$
+            \STATE $\mathit{free}[best_H] \leftarrow \mathit{free}[best_H] - 1$
             \STATE $temp \leftarrow propose$
         \ENDWHILE
     \end{algorithmic}
@@ -105,13 +105,13 @@ $target(t,\alpha) = U_A(propose)$は成り立つとは限らない．
 
 本稿では，相手の提案を受諾する際の戦略はIAGOのデフォルトエージェントで用いられているものを使用する．
 すなわち，\equref{eq:acceptance}が真になるような提案がなされたとき，その提案を受諾する．
-なお，$margin$は$0 \leqq margin \leqq 0.08$であり，エージェントが相手の提案を拒否するごとに0.02ずつ加算されていく．
+なお，$margin$は$0 \leqq margin \leqq 0.02 \times N_{iss}$であり，エージェントが相手の提案を拒否するごとに0.02ずつ加算されていく．
 \begin{equation}
-    U_A(bid_t) > U_A(bid_{accept}) \wedge U_A(bid_t) - U_A(bid_{accept}) + margin > U_H(bid_t) - U_H(bid_{accept}) 
+    U_A(bid_t) > U_A(bid_{acc}) \wedge U_A(bid_t) - U_A(bid_{acc}) + margin > U_H(bid_t) - U_H(bid_{acc}) 
     \label{eq:acceptance}
 \end{equation}
 
-また，エージェントは相手から送信された全ての提案$bids = \{ bid_1, bid_2, \ldots , bid_t \}$を2つに分割し計算で使用する．
+また，エージェントは相手から送信されたすべての提案$bids = \{ bid_1, bid_2, \ldots , bid_t \}$を2つに分割し計算で使用する．
 直近の$N_{\mathit{bid}}$個の提案を$bids^{rec}$，それ以前の提案を$bids^{pre}$とし，$bids^{pre}$には$\psi_{\mathit{bid}}^{pre}(0 \leqq \psi_{\mathit{bid}}^{pre} \leqq 1)$を乗じて計算することで，
 過去の提案を参考にしつつ直近の提案を重視して特性の推定が可能になる．
 
@@ -139,10 +139,10 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 
 積極性は\equref{eq:assertiveness}で計算する．
 \begin{align}
-    assert &= -norm \left(\sigma, \max \left(\sigma, \sigma_{dum} \cdot \xi_{max}^{dev}\right), \min \left(\sigma, \sigma_{dum} \cdot \xi_{min}^{dev}\right) \right) \label{eq:assertiveness} \\
-    \sigma &= dev(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev(bids^{rec}) \nonumber 
+    assert &= -norm \left(\sigma, \max \left(\sigma, \sigma_{dum} \cdot \xi_{max}^{dev}\right), \min \left(\sigma, \sigma_{dum} \cdot \xi_{min}^{dev}\right) \right) \label{eq:assertiveness} 
 \end{align}
 \begin{align}
+    \sigma &= dev(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev(bids^{rec}) \nonumber \\
     dev(argbids) &= \frac{1}{\sqrt{size(argbids)}}\sum_{i = 1}^{size(argbids)} |U_H(argbids_i) - mean(U_H(argbids))| \nonumber \\
     \sigma_{dum} &= dev(bids_{dumU}^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dumDev(bids_{dumU}^{rec}) \nonumber \\
     dumDev(argbids) &= tempDev(argbids) + devBias(mean(U_H(argbids)), tempDev(argbids)) \nonumber \\
@@ -154,7 +154,7 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
     \end{cases*} \label{eq:devBias} \\
     \mathit{diffMaxMean} &= \max U_H(bids^{rec}) - mean(U_H(bids^{rec})) \nonumber \\
     {\rm isNearZero} &= \sum_{i = 1}^{size(bids^{rec})}\mathit{undef}(bids^{rec}_i) \neq 0 \vee \mathit{diffMaxMean} < \frac{0.022}{N_{bid}} \nonumber \\
-    \mathit{undef}(bid) &= \sum_{k = 1}^{N} bid[k][1] \nonumber \\
+    \mathit{undef}(bid) &= \sum_{k = 1}^{N_{iss}} bid[k][1] \nonumber \\
     dumV(bid, m) &=
     \begin{cases*}
         |dumU(U_H(bid)) - m| & if $dumU(U_H(bid)) \leqq 0.75$ \\
@@ -167,7 +167,7 @@ TKIのモード推定は藤田\cite{tki-aa}やKoleyら\cite{tki-ha}のように�
 したがって，交渉が進むにつれて$U_H(bid_t)$と$U_H(bid_{t-1})$の差は小さくなっていき，平均値および標準偏差の増分も小さくなるため，
 \equref{eq:cooperativeness}，\equref{eq:assertiveness}では協調性，積極性の測定が正しく行えない可能性がある．
 そのため，交渉後半($U_H(bids[i]) > 0.75$)のダミーの提案の効用は\equref{eq:dummyMean}，\equref{eq:dummyV}のように実際より高い値で計算を行なっている．
-\equref{eq:devBias}は，効用があまり変動しないような提案が連続で行われた時にダミーの提案の標準偏差を高い値にするために加えた．
+\equref{eq:devBias}は，効用があまり変動しないような提案が連続で行われたときにダミーの提案の標準偏差を高い値にするために加えた．
 これにより，同じような提案が連続で送信されると積極性が低くなる．
 
 TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertiveness}により計算した，協調性と積極性の組$P_h = (coop, assert)$を使用する．
@@ -220,7 +220,7 @@ TKIのモード推定には\equref{eq:cooperativeness}，\equref{eq:assertivenes
 ビッグファイブは提案内容だけでなく相手の行動も考慮し各因子の値を測定する．
 提案と同様に行動も2つに分割して計算を行う．
 ラウンド$t$までに相手から送信された提案以外の行動の数を$\tau$とする．
-相手から送信された提案以外の全ての行動$behs = \{ beh_1, beh_2, \ldots , beh_\tau \}$のうち，
+相手から送信された提案以外のすべての行動$behs = \{ beh_1, beh_2, \ldots , beh_\tau \}$のうち，
 直近の$N_{beh}$個の行動を$behs^{rec}$，それ以前の行動を$behs^{pre}$とし，
 $behs^{pre}$には$\psi_{beh}^{pre}(0 \leqq \psi_{beh}^{pre} \leqq 1)$を乗じて計算する．
 なお，$behs$のうち特定の行動$\rho$に該当する部分集合を$behs\{\rho\}$とする．
@@ -256,7 +256,7 @@ $\mathit{offs}^{pre}$には$\psi_{\mathit{off}}^{pre}(0 \leqq \psi_{\mathit{off}
     \label{eq:classRate}
 \end{align}
 なお，\equref{eq:classRate}の1項目の分母が$size(\mathit{offs}^{pre})$ではなく$size(\mathit{offs})$であるのは，
-$size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなりすぎるのを防ぐためである．
+$size(\mathit{offs}^{pre})$が小さいときに1項目の影響が大きくなりすぎるのを防ぐためである．
 \equref{eq:classSum}を用いて行動に対する感受性を\equref{eq:sensebeh}と定義する．
 \begin{equation}
     senseBeh = \frac{\Sigma_{Fortunate} + \Sigma_{Nice} + \Sigma_{Concession}}{\Sigma_{\mathit{Selfish}} + \Sigma_{\mathit{Unfortunate}} + \Sigma_{Silent}} 
@@ -274,7 +274,7 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
     \nu_{beh} &= \min \left( \nu_{beh}^{lim}, \frac{n_{beh}}{2.0 \cdot N_{beh}} \right) \label{eq:behW} 
 \end{align}
 
-\subsubsection{神経症傾向}
+\subsubsection*{神経症傾向}
 神経症傾向が高い人は脅威に対する警戒心が高い．
 交渉における最大の脅威は交渉の決裂であると考えられる．
 そのため，神経症傾向が高ければ交渉の決裂を避けるため，できるだけ受諾されやすい提案を行うと推測される．
@@ -283,7 +283,6 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
 したがって，ネガティブな行動が増えると考えられるため，ネガティブな感情，ネガティブなメッセージの送信数を測定に用いる．
 なお，IAGOには人間が送信可能なネガティブ感情として``Angry"と``Sad"が用意されている．
 ``Angry"の方が``Sad"に比べて相手に対して否定的であると考えられるため，``Sad"に小さい重みをかける．
-
 これらをふまえ，本稿では神経症傾向は\tabref{tab:neuroticism}に示す要素によって測定を行う．
 
 \begin{table}[tb]
@@ -309,7 +308,7 @@ $size(\mathit{offs}^{pre})$が小さい時に1項目の影響が大きくなり�
     &+ size(argbehs\{emo_{Sad}\}) \cdot 0.5 \nonumber 
 \end{align}
 
-\subsubsection{外向性}
+\subsubsection*{外向性}
 外向性が高い人は報酬に対しての欲求が非常に高い．
 交渉において，報酬はすなわち自身の効用である．
 したがって，外向性が高ければ自身の効用が高くなるような提案を行うと推測される．
@@ -319,7 +318,8 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
 そのため，FAVOR\_REQUESTが送信される回数が多いほど報酬が高くなるため，外向性が高いと考えられる．
 また，外向性が高い人は社交的である．
 したがって，提案や行動の頻度が高いほど．外向性が高いと推測できる．
-
+行動の頻度を計算するために$behTimings = \{time_1, time_2 , \ldots , time_{t+\tau}\}$を定義する．
+なお，$time$は行動もしくは提案が行われた瞬間の交渉経過時間とする．
 これらをふまえ，外向性は\tabref{tab:extraversion}に示す要素によって測定を行う．
 
 \begin{table}[tb]
@@ -334,9 +334,6 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
     \label{tab:extraversion}
 \end{table}
 
-行動の頻度を計算するために$behTimings = \{time_1, time_2 , \ldots , time_{t+\tau}\}$を定義する．
-なお，$time$は行動もしくは提案が行われた瞬間の交渉経過時間とする．
-
 外向性は\equref{eq:extraversion}で計算する．
 \begin{align}
     extra &= \mathit{extraOff} \cdot \nu_{\mathit{bid}} + extraBeh \cdot \nu_{beh} \label{eq:extraversion} \\
@@ -349,7 +346,7 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
     \mathit{favReqNum} &= size(behs\{mes_{\mathit{favReq}}\}) \nonumber
 \end{align}
 
-\subsubsection{経験への開放性}
+\subsubsection*{経験への開放性}
 経験への開放性が高い人は知的好奇心が非常に高い．
 各論点の選択肢が異なっても効用が同じ提案が存在する場合がある．
 経験への開放性が高い人はさまざまな提案を送信し合意案を探索すると推測される．
@@ -358,7 +355,6 @@ FAVOR\_REQUESTが送信されるとエージェントは人間の効用だけが
 よって，選好やBATNAについてエージェントに質問した回数を測定に使用する．
 IAGOにはエージェントに対して選好をランダムで1つ送信するように依頼するためのメッセージとしてPREF\_REQUESTが用意されている．
 PREF\_REQUESTもエージェントに対する質問に関するメッセージなので経験への開放性の測定に用いる．
-
 これらをふまえ，経験への開放性は\tabref{tab:openness}に示す要素によって測定を行う．
 
 \begin{table}[tb]
@@ -378,14 +374,14 @@ PREF\_REQUESTもエージェントに対する質問に関するメッセージ�
     open &= \mathit{openOff} \cdot \nu_{\mathit{bid}} + openBeh \cdot \nu_{beh} \label{eq:openness} \\
     \mathit{openOff} &= norm \left(\eta, \max \left(\eta, \eta_{dum} \cdot \xi_{max}^{devO}\right), \min \left(\eta, \eta_{dum} \cdot \xi_{min}^{devO}\right) \right) \nonumber \\
     \eta &= dev_{val}(bids^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dev_{val}(bids^{rec}) \nonumber \\
-    dev_{val}(argbids) &= \frac{1}{\sqrt{size(argbids \cdot N}}\sum_{i = 1}^{size(argbids)} \sum_{j = 1}^{N} \left| argbids_i[j][2] - mean_{val}(argbids)[j] \right| \nonumber \\
+    dev_{val}(argbids) &= \frac{1}{\sqrt{size(argbids) \cdot N_{iss}}}\sum_{i = 1}^{size(argbids)} \sum_{j = 1}^{N_{iss}} \left| argbids_i[j][2] - mean_{val}(argbids)[j] \right| \nonumber \\
     mean_{val}(argbids) &= \frac{1}{size(argbids)}\left(\sum_{i = 1}^{size(argbids)} (argbids_i)^{\mathrm{T}}[2] \right)^{\mathrm{T}} \nonumber \\
     \eta_{dum} &= dumDev_{val}(bids_{dumV}^{pre}) \cdot \psi_{\mathit{bid}}^{pre} + dumDev_{val}(bids_{dumV}^{rec}) \nonumber \\
     dumDev_{val}(argbids) &= dev_{val}(argbids) + biasV(dev_{val}(argbids)) \nonumber \\
     biasV(dev) &= 
     \begin{cases*}
         \frac{1}{0.5 \cdot \max (0.0, dev - 1.5) + 0.01 \cdot \max (0.01, dev)} \cdot 0.5 & if isNearZero \\
-        \mathit{diffMaxMean} \cdot 25 \cdot N_{bid} \cdot N & otherwise 
+        \mathit{diffMaxMean} \cdot 25 \cdot N_{bid} \cdot N_{iss} & otherwise 
     \end{cases*} \nonumber \\
     openBeh &= norm\left( askBeh, \max \left( askBeh, \xi_{max}^{\mathit{behO}}\right), \xi_{min}^{\mathit{behO}} \right) \nonumber \\
     askBeh &=  ask(behs^{pre}) \cdot \psi_{beh}^{pre} + ask(behs^{rec}) + size(behs\{mes_{\mathit{preReq}}\}) \nonumber \\
@@ -393,7 +389,7 @@ PREF\_REQUESTもエージェントに対する質問に関するメッセージ�
     ask(argbehs) &= size(argbehs\{mes_{\mathit{preAsk}}\}) \nonumber
 \end{align}
 
-\subsubsection{協調性}
+\subsubsection*{協調性}
 協調性が高い人は他者に配慮する能力が非常に高い．
 そのため，相手の行動に対し敏感であると考えられる．
 よって，行動に対する感受性を協調性の測定に用いる．
@@ -408,10 +404,9 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
 そのような人は，ポジティブな行動回数が多いと考えられるため，ポジティブな感情，ポジティブなメッセージの送信数を測定に用いる．
 なお，IAGOには人間が送信可能なポジティブ感情として``Happy"と``Surprised"が用意されている．
 ``Happy"の方が``Surprised"に比べて相手に対して肯定的であると考えられるため，``Surprised"に小さい重みをかける．
-
 これらをふまえ，協調性は\tabref{tab:agreeableness}に示す要素によって測定を行う．
 
-\begin{table}[b]
+\begin{table}[bt]
     \centering
     \caption{協調性の測定に用いる交渉の要素}
     \begin{tabular}{l} \toprule
@@ -437,18 +432,18 @@ FAVOR\_RETURNが送信されるとエージェントはエージェントの効�
         0.02 & otherwise 
     \end{cases*} \nonumber \\
     \epsilon_A &= mean(U_A(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_A(bids^{rec})) \nonumber \\
-    \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber 
+    \epsilon_H &= mean(U_H(bids^{pre})) \cdot \psi_{\mathit{bids}}^{pre} + mean(U_H(bids^{rec})) \nonumber \\
+    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), \xi_{min}^{\mathit{behA}} \right) + \mathit{favRet}\right) \nonumber \\
+    posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber 
 \end{align}
 \begin{align}
-    agreeBeh &= \min \left( 1.0, norm\left( \mathit{posBeh}, \max \left( \mathit{posBeh}, \xi_{max}^{\mathit{behA}}\right), \xi_{min}^{\mathit{behA}} \right) + \mathit{favRet}\right) \nonumber \\
-    posBeh &=  pos(behs^{pre}) \cdot \psi_{beh}^{pre} + pos(behs^{rec}) \nonumber \\
     pos(argbehs) &= size(argbehs\{mes_{pos}\}) + size(argbehs\{accept\}) \nonumber \\
     &+ size(argbehs\{emo_{Happy}\}) \nonumber + size(argbehs\{emo_{Surprised}\}) \cdot 0.5 \nonumber \\
     \mathit{favRet} &= norm\left( \mathit{favRetNum}, \max \left( \mathit{favRetNum}, \xi_{max}^{\mathit{favRet}}\right), \xi_{min}^{\mathit{favRet}} \right) \nonumber \\
     \mathit{favRetNum} &= size(behs\{mes_{\mathit{favRet}}\}) \nonumber
 \end{align}
 
-\subsubsection{誠実性}
+\subsubsection*{誠実性}
 誠実性が高い人は物事を順序立てて行う能力が非常に高い．
 そのため，少しずつ効用が高くなるように提案を行ってくると推測される．
 したがって効用の標準偏差が小さいほど誠実性が高いと考えられる．
@@ -459,7 +454,6 @@ IAGOではエージェントに対して選好やBATNAについて嘘をつく�
 嘘をつくことは誠実性の高さと反比例すると考えられるため，測定に使用する．
 また，お互いの情報を十分に集めてから提案を行うと考えられる．
 そのため，$bid_1$の送信前の行動数で誠実性の測定を行う．
-
 これらをふまえ，誠実性は\tabref{tab:conscientiousness}に示す要素によって測定を行う．
 
 \begin{table}[b]
@@ -481,10 +475,12 @@ IAGOではエージェントに対して選好やBATNAについて嘘をつく�
 \begin{align}
     consci &= \mathit{consciOff} \cdot \nu_{\mathit{bid}} + consciBeh \cdot \nu_{beh} \label{eq:conscientiousness} \\
     \mathit{consciOff} &= \frac{-\sigma + \mathit{undefRatio}}{2} \nonumber \\
-    \mathit{undefRatio} &= -norm \left(\zeta, \max \left(\zeta, \xi_{max}^{ratioC} \right), \min \left(\zeta, \xi_{min}^{ratioC}\right) \right) \nonumber \\
+    \mathit{undefRatio} &= -norm \left(\zeta, \max \left(\zeta, \xi_{max}^{ratioC} \right), \min \left(\zeta, \xi_{min}^{ratioC}\right) \right) \nonumber 
+\end{align}
+\begin{align}
     \zeta &= \frac{\left| \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{pre}_{size(bids^{pre})}\right) \right) - \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{pre}_1\right) \right) \right|}{size(bids^{pre})} \cdot \psi_{\mathit{bid}}^{pre} \nonumber \\
     &+ \frac{\left|\left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{rec}_{size(bids^{rec})}\right) \right) - \left(\mathit{undef_{max}} - \mathit{undef}\left(bids^{rec}_1\right) \right) \right|}{size(bids^{rec})} \nonumber \\
-    \mathit{undef_{max}} &= \sum_{i=1}^N v_{in_i} \nonumber \\
+    \mathit{undef_{max}} &= \sum_{i=1}^{N_{iss}} v_{in_i} \nonumber \\
     consciBeh &= \max \left( -1.0, \frac{norm\left( \mathit{telBeh}, \max \left( \mathit{telBeh}, \xi_{max}^{\mathit{behC}}\right), \xi_{min}^{\mathit{behC}} \right) + \mathit{fastBeh}}{2} + \mathit{lie}\right) \nonumber \\
     telBeh &=  tel(behs^{pre}) \cdot \psi_{beh}^{pre} + tel(behs^{rec}) + size(behs\{mes_{\mathit{batTel}}\}) \cdot \xi^{batTel} \nonumber \\
     tel(argbehs) &= size(argbehs\{mes_{\mathit{preTel}}\}) \nonumber \\
@@ -494,7 +490,7 @@ IAGOではエージェントに対して選好やBATNAについて嘘をつく�
     \mathit{lieNum} &= size(behs\{mes_{\mathit{lie}}\}) \nonumber
 \end{align}
 
-\subsubsection{ビッグファイブによる目標効用の変更}
+\subsubsection*{ビッグファイブによる目標効用の変更}
 測定したビッグファイブの値によって目標効用のパラメータを変化させる．
 各因子は$[-1.0,1.0]$の値をとり，各因子が最小値，最大値だったときのパラメータを設定しておく．
 実際に測定したビッグファイブの各因子の値に応じて，各因子に設定された最小値，最大値を混合し各パラメータの値を計算する．
@@ -503,7 +499,7 @@ IAGOではエージェントに対して選好やBATNAについて嘘をつく�
 例として，神経症傾向が0.2，外向性が0.6，経験への開放性が-1.0，協調性が1.0，誠実性が-0.5である場合を考える．
 このとき，各パラメータは以下のように計算される．
 
-\begin{table}[tb]
+\begin{table}[b]
     \centering
     \caption{ビッグファイブで変更するパラメータ}
     \begin{tabular}{lcrr} \toprule
